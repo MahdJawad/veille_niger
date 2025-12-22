@@ -58,10 +58,10 @@ def get_sentiment_pipeline():
     """Charge le modèle IA uniquement à la première utilisation (lazy loading)"""
     global _sentiment_pipeline
     if _sentiment_pipeline is None:
-        logger.info("Chargement du modèle IA de sentiment...")
+        logger.info("Chargement du modèle de sentiment léger (DistilBERT)...")
         _sentiment_pipeline = pipeline(
-            "sentiment-analysis",
-            model="nlptown/bert-base-multilingual-uncased-sentiment"
+            "sentiment-analysis", 
+            model="lxyuan/distilbert-base-multilingual-cased-sentiments-student"
         )
         logger.info("Modèle IA chargé avec succès")
     return _sentiment_pipeline
@@ -140,15 +140,14 @@ def process_data(post: SocialPost):
         # A. Analyse de Sentiment (lazy loading)
         sentiment_model = get_sentiment_pipeline()
         result = sentiment_model(post.content[:512])[0]
-        label = result['label']
-        score = int(label.split()[0])
+        label = result['label'].lower()
         
-        if score <= 2:
+        if 'negative' in label:
             tonality = "Négatif"
-        elif score == 3:
-            tonality = "Neutre"
-        else:
+        elif 'positive' in label:
             tonality = "Positif"
+        else:
+            tonality = "Neutre"
         
         # B. Sauvegarde SQLite (thread-safe avec transactions)
         try:
