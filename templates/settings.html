@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres - Veille Niger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #E05206 0%, #009639 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .settings-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-card h2 {
+            margin-bottom: 25px;
+            color: #333;
+            border-bottom: 2px solid #E05206;
+            padding-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #f8f9fa;
+        }
+
+        .form-group textarea {
+            min-height: 200px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save {
+            background: #E05206;
+            color: white;
+            flex-grow: 1;
+        }
+
+        .btn-save:hover {
+            background: #c04505;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+        }
+
+        .notification {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .notification.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .instruction-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #856404;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1>Configuration du Système</h1>
+            </div>
+            <a href="/dashboard" class="btn btn-back" style="padding: 10px 20px; font-size: 14px;">Retour au
+                Dashboard</a>
+        </div>
+    </div>
+
+    <div class="container" id="app">
+        <div v-if="message" :class="'notification ' + messageType">
+            {{ message }}
+        </div>
+
+        <div class="settings-card">
+            <h2>Paramètres Google Sheets</h2>
+
+            <div class="instruction-box">
+                <p><strong>Comment connecter Google Sheets :</strong></p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Créez un projet sur la <a href="https://console.cloud.google.com/" target="_blank">Google Cloud
+                            Console</a>.</li>
+                    <li>Activez l'API **Google Sheets** et **Google Drive**.</li>
+                    <li>Créez un **Compte de Service** et téléchargez la clé au format **JSON**.</li>
+                    <li>Collez le contenu du fichier JSON ci-dessous.</li>
+                    <li><strong>Important :</strong> Partagez votre feuille de calcul avec l'adresse mail ci-dessous :
+                    </li>
+                </ol>
+                {% if config.CLIENT_EMAIL %}
+                <div
+                    style="background: #fff; padding: 10px; margin-top: 10px; border: 1px solid #ffeeba; border-radius: 4px; font-family: monospace; font-size: 13px; text-align: center;">
+                    {{ config.CLIENT_EMAIL }}
+                </div>
+                {% else %}
+                <p style="margin-top: 10px; color: #dc3545; font-style: italic;">(Collez vos credentials JSON pour voir
+                    l'adresse mail de partage)</p>
+                {% endif %}
+            </div>
+
+            <form action="/settings" method="post">
+                <div class="form-group">
+                    <label for="google_sheet_name">Nom de la Feuille de Calcul</label>
+                    <input type="text" id="google_sheet_name" name="google_sheet_name"
+                        value="{{ config.GOOGLE_SHEET_NAME }}">
+                    <p class="help-text">Le nom exact de la feuille Google Sheets à laquelle se connecter.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="credentials_json">Contenu du fichier credentials.json</label>
+                    <textarea id="credentials_json" name="credentials_json"
+                        placeholder='{"type": "service_account", ...}'>{{ credentials_content }}</textarea>
+                    <p class="help-text">Collez ici le contenu complet de votre fichier JSON de compte de service
+                        Google.</p>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-save">Enregistrer les Paramètres</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets & Credentials
+.env
+credentials.json
+*.key
+*.pem
+
+# Data & Logs
+data.csv
+*.db
+*.sqlite
+*.sqlite3
+logs/
+*.log
+
+# Debug files
+debug_*.html
+debug_*.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright
+playwright/.local-browsers/

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: veille-niger-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - veille_data:/app
+      - ./credentials.json:/app/credentials.json
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  scraper:
+    build: .
+    container_name: veille-niger-scraper
+    command: python scraper.py
+    volumes:
+      - veille_data:/app
+      - ./credentials.json:/app/credentials.json
+    env_file:
+      - .env
+    environment:
+      - SCRAPER_INTERVAL=60 # Collecte toutes les 60 minutes
+    restart: unless-stopped
+    depends_on:
+      - api
+
+volumes:
+  veille_data:

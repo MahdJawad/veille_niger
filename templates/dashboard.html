@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veille Niger - Dashboard Professionnel</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #E05206 0%, #009639 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .sync-button {
+            background: white;
+            color: #E05206;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sync-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* Statistiques globales */
+        .global-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-widget {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #E05206;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Graphiques */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-height: 350px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Grille de plateformes 2x3 */
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .platform-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .platform-header {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-bottom: 2px solid #E05206;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .platform-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .platform-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .mini-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .mini-badge.total {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .mini-badge.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .mini-badge.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Table compacte */
+        .platform-table {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 10;
+        }
+
+        th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .date-cell {
+            width: 110px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .author-cell {
+            width: 120px;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .content-cell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+
+        .sentiment-cell {
+            width: 80px;
+        }
+
+        .actions-cell {
+            width: 120px;
+        }
+
+        /* Badges sentiment avec couleurs */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-positif {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-négatif {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-neutre {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* Boutons d'action */
+        .btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-right: 3px;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #0056b3;
+        }
+
+        .btn-link {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-link:hover {
+            background: #1e7e34;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E05206;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .close {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn-save {
+            background: #E05206;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background: #c04505;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            z-index: 2000;
+            display: none;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        /* Scrollbar personnalisée */
+        .platform-table::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .platform-table::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .platform-table::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .platform-table::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="/static/images/logo.png" alt="Niger Logo" class="logo">
+                <div>
+                    <h1>Veille Niger - Dashboard Professionnel</h1>
+                    <p style="font-size: 13px; opacity: 0.9;">Surveillance médiatique multi-plateformes</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="/settings"
+                    style="background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-size: 14px; font-weight: 600; display: flex; align-items: center;">
+                    Paramètres
+                </a>
+                <button class="sync-button" onclick="syncToSheets()">
+                    Synchroniser Google Sheets
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistiques globales -->
+        <div class="global-stats">
+            <div class="stat-widget">
+                <div class="stat-label">Total Articles</div>
+                <div class="stat-value">{{ stats.total }}</div>
+            </div>
+            <div class="stat-widget" style="border-left-color: #28a745;">
+                <div class="stat-label">Positif</div>
+                <div class="stat-value" style="color: #28a745;">{{ stats.positif }}</div>
+            </div>
+            <div class="stat-widget" style="border-left-color: #dc3545;">
+                <div class="stat-label">Négatif</div>
+                <div class="stat-value" style="color: #dc3545;">{{ stats.negatif }}</div>
+            </div>
+            <div class="stat-widget" style="border-left-color: #6c757d;">
+                <div class="stat-label">Neutre</div>
+                <div class="stat-value" style="color: #6c757d;">{{ stats.neutre }}</div>
+            </div>
+        </div>
+
+        <!-- Graphiques d'analyse -->
+        <div class="charts-row">
+            <div class="chart-container">
+                <h3 class="chart-title">Répartition des Sentiments</h3>
+                <canvas id="sentimentPieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 class="chart-title">Évolution Temporelle (7 derniers jours)</h3>
+                <canvas id="sentimentTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tableau général (toutes plateformes) -->
+        <div class="platform-card" style="margin-bottom: 20px;">
+            <div class="platform-header">
+                <div class="platform-title">Vue Générale - Toutes Plateformes</div>
+                <div class="platform-stats">
+                    <span class="mini-badge total">{{ stats.total }} articles</span>
+                </div>
+            </div>
+            <div class="platform-table" style="max-height: 500px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="date-cell">Date</th>
+                            <th style="width: 130px;">Plateforme</th>
+                            <th class="author-cell">Auteur</th>
+                            <th class="content-cell">Contenu</th>
+                            <th class="sentiment-cell">Tonalité</th>
+                            <th class="actions-cell">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in posts[:50] %}
+                        <tr>
+                            <td class="date-cell">{{ article.Date[:16] if article.Date else article.date[:16] }}</td>
+                            <td style="font-size: 11px; font-weight: 600; color: #495057;">
+                                {{ article.Plateforme if article.Plateforme else article.platform }}
+                            </td>
+                            <td class="author-cell" title="{{ article.Auteur if article.Auteur else article.author }}">
+                                {{ (article.Auteur if article.Auteur else article.author)[:20] }}
+                            </td>
+                            <td class="content-cell"
+                                title="{{ article.Contenu if article.Contenu else article.content }}">
+                                {{ (article.Contenu if article.Contenu else article.content)[:80] }}
+                            </td>
+                            <td class="sentiment-cell">
+                                <span
+                                    class="badge badge-{{ (article.Tonalité if article.Tonalité else article.sentiment)|lower }}">
+                                    {{ article.Tonalité if article.Tonalité else article.sentiment }}
+                                </span>
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
+                                <button class="btn btn-link"
+                                    onclick="window.open('{{ article.URL if article.URL else article.url }}', '_blank')">Lien</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Grille 2x3 des plateformes -->
+        <div class="platforms-grid">
+            <!-- Ligne 1 : Google News + Facebook -->
+            {% for platform_name in ['Google News (Deep)', 'Facebook'] %}
+            {% if platform_name in platforms %}
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-title">{{ platform_name }}</div>
+                    <div class="platform-stats">
+                        <span class="mini-badge total">{{ platform_stats[platform_name].total }}</span>
+                        <span class="mini-badge positive">+{{ platform_stats[platform_name].positif }}</span>
+                        <span class="mini-badge negative">-{{ platform_stats[platform_name].negatif }}</span>
+                    </div>
+                </div>
+                <div class="platform-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="date-cell">Date</th>
+                                <th class="author-cell">Auteur</th>
+                                <th class="content-cell">Contenu</th>
+                                <th class="sentiment-cell">Tonalité</th>
+                                <th class="actions-cell">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in platforms[platform_name] %}
+                            <tr>
+                                <td class="date-cell">{{ article.Date[:16] }}</td>
+                                <td class="author-cell" title="{{ article.Auteur }}">{{ article.Auteur[:20] }}</td>
+                                <td class="content-cell" title="{{ article.Contenu }}">{{ article.Contenu[:80] }}</td>
+                                <td class="sentiment-cell">
+                                    <span class="badge badge-{{ article.Tonalité|lower }}">{{ article.Tonalité }}</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
+                                    <button class="btn btn-link"
+                                        onclick="window.open('{{ article.URL }}', '_blank')">Lien</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+            <!-- Ligne 2 : LinkedIn + Twitter -->
+            {% for platform_name in ['LinkedIn', 'Twitter/X'] %}
+            {% if platform_name in platforms %}
+            <div class="platform-card">
+                <div class="platform-header">
+                    <div class="platform-title">{{ platform_name }}</div>
+                    <div class="platform-stats">
+                        <span class="mini-badge total">{{ platform_stats[platform_name].total }}</span>
+                        <span class="mini-badge positive">+{{ platform_stats[platform_name].positif }}</span>
+                        <span class="mini-badge negative">-{{ platform_stats[platform_name].negatif }}</span>
+                    </div>
+                </div>
+                <div class="platform-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="date-cell">Date</th>
+                                <th class="author-cell">Auteur</th>
+                                <th class="content-cell">Contenu</th>
+                                <th class="sentiment-cell">Tonalité</th>
+                                <th class="actions-cell">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in platforms[platform_name] %}
+                            <tr>
+                                <td class="date-cell">{{ article.Date[:16] }}</td>
+                                <td class="author-cell" title="{{ article.Auteur }}">{{ article.Auteur[:20] }}</td>
+                                <td class="content-cell" title="{{ article.Contenu }}">{{ article.Contenu[:80] }}</td>
+                                <td class="sentiment-cell">
+                                    <span class="badge badge-{{ article.Tonalité|lower }}">{{ article.Tonalité }}</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
+                                    <button class="btn btn-link"
+                                        onclick="window.open('{{ article.URL }}', '_blank')">Lien</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+            <!-- Ligne 3 : Instagram (pleine largeur) -->
+            {% if 'Instagram' in platforms %}
+            <div class="platform-card" style="grid-column: 1 / -1;">
+                <div class="platform-header">
+                    <div class="platform-title">Instagram</div>
+                    <div class="platform-stats">
+                        <span class="mini-badge total">{{ platform_stats['Instagram'].total }}</span>
+                        <span class="mini-badge positive">+{{ platform_stats['Instagram'].positif }}</span>
+                        <span class="mini-badge negative">-{{ platform_stats['Instagram'].negatif }}</span>
+                    </div>
+                </div>
+                <div class="platform-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="date-cell">Date</th>
+                                <th class="author-cell">Auteur</th>
+                                <th class="content-cell">Contenu</th>
+                                <th class="sentiment-cell">Tonalité</th>
+                                <th class="actions-cell">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in platforms['Instagram'] %}
+                            <tr>
+                                <td class="date-cell">{{ article.Date[:16] }}</td>
+                                <td class="author-cell" title="{{ article.Auteur }}">{{ article.Auteur[:20] }}</td>
+                                <td class="content-cell" title="{{ article.Contenu }}">{{ article.Contenu[:80] }}</td>
+                                <td class="sentiment-cell">
+                                    <span class="badge badge-{{ article.Tonalité|lower }}">{{ article.Tonalité }}</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
+                                    <button class="btn btn-link"
+                                        onclick="window.open('{{ article.URL }}', '_blank')">Lien</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal d'édition -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Éditer l'article</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="articleId">
+
+                <div class="form-group">
+                    <label>Auteur</label>
+                    <input type="text" id="editAuteur" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Contenu</label>
+                    <textarea id="editContenu" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Tonalité</label>
+                    <select id="editTonalite">
+                        <option value="Positif">Positif</option>
+                        <option value="Négatif">Négatif</option>
+                        <option value="Neutre">Neutre</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="editURL" required>
+                </div>
+
+                <button type="submit" class="btn-save">Sauvegarder</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        async function editArticle(id) {
+            try {
+                const response = await fetch(`/api/article/${id}`);
+                const article = await response.json();
+
+                if (article.error) {
+                    showNotification(article.error, 'error');
+                    return;
+                }
+
+                document.getElementById('articleId').value = id;
+                document.getElementById('editAuteur').value = article.author;
+                document.getElementById('editContenu').value = article.content;
+                document.getElementById('editTonalite').value = article.sentiment;
+                document.getElementById('editURL').value = article.url;
+
+                document.getElementById('editModal').style.display = 'block';
+            } catch (error) {
+                showNotification('Erreur chargement article', 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('articleId').value;
+            const data = {
+                author: document.getElementById('editAuteur').value,
+                content: document.getElementById('editContenu').value,
+                sentiment: document.getElementById('editTonalite').value,
+                url: document.getElementById('editURL').value
+            };
+
+            try {
+                const response = await fetch(`/api/article/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Article mis à jour avec succès', 'success');
+                    closeModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification('Erreur lors de la mise à jour', 'error');
+                }
+            } catch (error) {
+                showNotification('Erreur réseau', 'error');
+            }
+        });
+
+        async function syncToSheets() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Synchronisation en cours...';
+
+            try {
+                const response = await fetch('/api/sync-to-sheets', { method: 'POST' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                } else {
+                    showNotification(result.error || 'Erreur', 'error');
+                }
+            } catch (error) {
+                showNotification('Erreur réseau', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Synchroniser Google Sheets';
+            }
+        }
+
+        function showNotification(message, type) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.className = `notification ${type}`;
+            notif.style.display = 'block';
+            setTimeout(() => notif.style.display = 'none', 4000);
+        }
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('editModal')) {
+                closeModal();
+            }
+        }
+
+        // --- INITIALISATION DES GRAPHIQUES ---
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Graphique en Disque (Pie Chart)
+            const pieCtx = document.getElementById('sentimentPieChart').getContext('2d');
+            new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Positif', 'Négatif', 'Neutre'],
+                    datasets: [{
+                        data: [{{ stats.positif }}, {{ stats.negatif }}, {{ stats.neutre }}],
+            backgroundColor: ['#28a745', '#dc3545', '#6c757d'],
+            borderWidth: 1
+                    }]
+                },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+            });
+
+        // 2. Graphique en Courbe (Line Chart Trends)
+        const trendCtx = document.getElementById('sentimentTrendChart').getContext('2d');
+
+        // Préparation des données Trends
+        const rawTrends = [
+            {% for item in sentiment_trends %}
+        { day: "{{ item.day }}", sentiment: "{{ item.sentiment }}", count: { { item.count } } },
+        {% endfor %}
+            ];
+
+        // Grouper les données par jour pour Chart.js
+        const days = [...new Set(rawTrends.map(item => item.day))].sort();
+        const datasets = {
+            'Positif': days.map(day => {
+                const found = rawTrends.find(t => t.day === day && t.sentiment === 'Positif');
+                return found ? found.count : 0;
+            }),
+            'Négatif': days.map(day => {
+                const found = rawTrends.find(t => t.day === day && t.sentiment === 'Négatif');
+                return found ? found.count : 0;
+            }),
+            'Neutre': days.map(day => {
+                const found = rawTrends.find(t => t.day === day && t.sentiment === 'Neutre');
+                return found ? found.count : 0;
+            })
+        };
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        label: 'Positif',
+                        data: datasets['Positif'],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Négatif',
+                        data: datasets['Négatif'],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Neutre',
+                        data: datasets['Neutre'],
+                        borderColor: '#6c757d',
+                        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+        });
+    </script>
+</body>
+
+</html>
