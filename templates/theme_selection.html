@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choix de Thématique - Veille Niger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #004a99;
+            --accent: #ffcc00;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        button:hover {
+            background: #003a7a;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Bonjour, {{ user.username }}</h1>
+        <p>Veuillez sélectionner la thématique sur laquelle vous allez travailler aujourd'hui.</p>
+
+        <form action="/theme-selection" method="POST">
+            <select name="theme" required>
+                <option value="" disabled selected>Choisir une thématique...</option>
+                <!-- Liste des thématiques définies dans keywords.py -->
+                {% for keyword in keywords %}
+                <option value="{{ keyword }}">{{ keyword }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Commencer la Veille</button>
+        </form>
+    </div>
+</body>
+
+</html>

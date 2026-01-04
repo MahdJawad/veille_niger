@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Décideurs - Veille Niger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        niger: {
+                            orange: '#E05206',
+                            green: '#009A44',
+                            white: '#FFFFFF',
+                            light: '#f8fafc'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .chart-box {
+                box-shadow: none;
+                border: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-[#1e293b] text-white py-10 px-8 lg:px-16 relative overflow-hidden">
+        <!-- Accent Stripes (Flag Theme) -->
+        <div class="absolute top-0 left-0 w-full h-2 flex">
+            <div class="flex-1 bg-niger-orange"></div>
+            <div class="flex-1 bg-white"></div>
+            <div class="flex-1 bg-niger-green"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+            <div>
+                <h1 class="text-4xl font-bold tracking-tight">Vue Exécutive</h1>
+                <p class="text-slate-400 mt-2 text-lg">Analyse Stratégique de Veille - République du Niger</p>
+            </div>
+            <div class="flex gap-4 no-print">
+                <button onclick="window.print()"
+                    class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition px-6 py-3 rounded-xl font-semibold backdrop-blur-sm border border-white/10">
+                    <i class="fas fa-file-pdf"></i> Rapport PDF
+                </button>
+                <a href="/dashboard"
+                    class="flex items-center gap-2 bg-niger-orange hover:bg-orange-700 transition px-6 py-3 rounded-xl font-semibold shadow-lg shadow-orange-900/20">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 pb-20">
+
+        <!-- KPI Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-10">
+            <!-- Total -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-niger-orange">
+                <div class="text-niger-orange text-xl mb-3"><i class="fas fa-newspaper"></i></div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Revus</div>
+                <div class="text-3xl font-bold mt-1">{{ summary.total }}</div>
+            </div>
+            <!-- Social -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-500">
+                <div class="text-blue-500 text-xl mb-3"><i class="fab fa-facebook"></i></div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Réseaux Sociaux</div>
+                <div class="text-3xl font-bold mt-1 text-blue-600">{{ summary.social }}</div>
+            </div>
+            <!-- Web -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-500">
+                <div class="text-amber-500 text-xl mb-3"><i class="fas fa-globe"></i></div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Presse en ligne</div>
+                <div class="text-3xl font-bold mt-1 text-amber-600">{{ summary.web }}</div>
+            </div>
+            <!-- TV -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-red-500">
+                <div class="text-red-500 text-xl mb-3"><i class="fas fa-tv"></i></div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Télévision</div>
+                <div class="text-3xl font-bold mt-1 text-red-600">{{ summary.tv }}</div>
+            </div>
+            <!-- Radio -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-niger-green">
+                <div class="text-niger-green text-xl mb-3"><i class="fas fa-microphone"></i></div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Radio</div>
+                <div class="text-3xl font-bold mt-1 text-niger-green">{{ summary.radio }}</div>
+            </div>
+            <!-- Print -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-slate-800">
+                <div class="text-slate-800 text-xl mb-3"><i class="fas fa-print"></i></div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Presse Écrite</div>
+                <div class="text-3xl font-bold mt-1 text-slate-900">{{ summary.press }}</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Evolution Full Width -->
+            <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-xl font-bold flex items-center gap-3 text-slate-800">
+                        <span
+                            class="w-10 h-10 bg-orange-50 text-niger-orange rounded-xl flex items-center justify-center"><i
+                                class="fas fa-chart-line"></i></span>
+                        Évolution Hebdomadaire (8 Semaines)
+                    </h2>
+                </div>
+                <div class="h-80 w-full">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Theme Volume -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm">
+                <h2 class="text-lg font-bold flex items-center gap-3 text-slate-800 mb-8">
+                    <span class="w-10 h-10 bg-green-50 text-niger-green rounded-xl flex items-center justify-center"><i
+                            class="fas fa-th-large"></i></span>
+                    Occurrence Thématique
+                </h2>
+                <div class="h-80">
+                    <canvas id="themeBarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tonalité Thématique -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm">
+                <h2 class="text-lg font-bold flex items-center gap-3 text-slate-800 mb-8">
+                    <span class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i
+                            class="fas fa-balance-scale"></i></span>
+                    Tonalité par Thématique
+                </h2>
+                <div class="h-80">
+                    <canvas id="themeSentimentChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Sources -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm">
+                <h2 class="text-lg font-bold flex items-center gap-3 text-slate-800 mb-8">
+                    <span class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center"><i
+                            class="fas fa-broadcast-tower"></i></span>
+                    Distribution des Sources
+                </h2>
+                <div class="h-80">
+                    <canvas id="sourcePieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Audience Impact -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm">
+                <h2 class="text-lg font-bold flex items-center gap-3 text-slate-800 mb-8">
+                    <span class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center"><i
+                            class="fas fa-users-viewfinder"></i></span>
+                    Portée/Audience Par Tonalité
+                </h2>
+                <div class="h-80">
+                    <canvas id="audienceChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-20 pt-10 border-t border-slate-200 text-center text-slate-400 text-sm">
+            <div class="flex justify-center gap-4 mb-4">
+                <div class="w-4 h-4 rounded-full bg-niger-orange"></div>
+                <div class="w-4 h-4 rounded-full bg-white border border-slate-200"></div>
+                <div class="w-4 h-4 rounded-full bg-niger-green"></div>
+            </div>
+            <p>&copy; 2026 Système de Veille Niger - Dashboard Exécutif v2.0</p>
+        </footer>
+    </main>
+
+    <script>
+        // Options communes pour Chart.js
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        const nigerColors = {
+            orange: '#E05206',
+            green: '#009A44',
+            lightGreen: '#2ecc71',
+            red: '#e74c3c',
+            neutre: '#94a3b8',
+            blue: '#3b82f6',
+            amber: '#f59e0b'
+        };
+
+        // 1. Weekly Trends
+        const weeklyData = {{ weekly_trends | tojson }};
+        new Chart(document.getElementById('weeklyChart'), {
+            type: 'line',
+            data: {
+                labels: weeklyData.map(d => d.week),
+                datasets: [{
+                    label: 'Volume Articles',
+                    data: weeklyData.map(d => d.count),
+                    borderColor: nigerColors.orange,
+                    backgroundColor: 'rgba(224, 82, 6, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: nigerColors.orange,
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Theme Bar Chart
+        const themeData = {{ themes | tojson }};
+        new Chart(document.getElementById('themeBarChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(themeData),
+                datasets: [{
+                    label: 'Occurrences',
+                    data: Object.values(themeData),
+                    backgroundColor: nigerColors.green,
+                    borderRadius: 12,
+                    maxBarThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. Theme Sentiment Chart
+        const themeSentiments = {{ theme_sentiments | tojson }};
+        const thLabels = Object.keys(themeSentiments);
+        new Chart(document.getElementById('themeSentimentChart'), {
+            type: 'bar',
+            data: {
+                labels: thLabels,
+                datasets: [
+                    { label: 'Positif', data: thLabels.map(l => themeSentiments[l].Positif), backgroundColor: nigerColors.lightGreen, borderRadius: 6 },
+                    { label: 'Neutre', data: thLabels.map(l => themeSentiments[l].Neutre), backgroundColor: nigerColors.neutre, borderRadius: 6 },
+                    { label: 'Négatif', data: thLabels.map(l => themeSentiments[l].Négatif), backgroundColor: nigerColors.red, borderRadius: 6 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, grid: { color: '#f1f5f9' } }
+                },
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        // 4. Source Pie Chart
+        const sourceData = {{ top_sources | tojson }};
+        new Chart(document.getElementById('sourcePieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: sourceData.map(s => s.source),
+                datasets: [{
+                    data: sourceData.map(s => s.count),
+                    backgroundColor: [
+                        '#6366f1', '#fbbf24', '#10b981', '#ef4444', '#f59e0b',
+                        '#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6', '#475569'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+
+        // 5. Audience Chart
+        new Chart(document.getElementById('audienceChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Positif', 'Neutre', 'Négatif'],
+                datasets: [
+                    { label: 'Faible', data: [80, 20, 30], backgroundColor: '#cbd5e1', borderRadius: 6 },
+                    { label: 'Moyenne', data: [45, 15, 25], backgroundColor: nigerColors.green, borderRadius: 6 },
+                    { label: 'Importante', data: [15, 10, 20], backgroundColor: nigerColors.blue, borderRadius: 6 },
+                    { label: 'Élevée', data: [25, 5, 40], backgroundColor: nigerColors.amber, borderRadius: 6 },
+                    { label: 'Très élevée', data: [10, 2, 10], backgroundColor: nigerColors.orange, borderRadius: 6 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, grid: { display: false } }
+                },
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    </script>
+</body>
+
+</html>

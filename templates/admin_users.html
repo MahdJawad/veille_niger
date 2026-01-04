@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Utilisateurs - Veille Niger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Réutilisation du style Dashboard */
+        :root {
+            --primary: #E05206;
+            --secondary: #009E60;
+            --bg-light: #f8f9fa;
+            --text-dark: #333;
+            --border-color: #eee;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: #f4f6f8;
+            color: var(--text-dark);
+        }
+
+        .header {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-admin {
+            background: #e8daff;
+            color: #6f42c1;
+        }
+
+        .badge-member {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Important */
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .action-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            color: #6c757d;
+        }
+
+        .action-icon:hover {
+            color: var(--primary);
+        }
+
+        .action-icon.delete:hover {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="/dashboard" class="logo">Veille Niger</a>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <span style="font-weight: 500;">{{ user.username }} ({{ user.role }})</span>
+            <a href="/dashboard" class="btn btn-secondary" style="text-decoration: none; font-size: 13px;">Retour
+                Dashboard</a>
+            <a href="/logout" class="btn btn-danger" style="text-decoration: none; font-size: 13px;">Déconnexion</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>Gestion des Utilisateurs</h2>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Nouvel Utilisateur
+                </button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Rôle</th>
+                        <th>Date création</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>
+                            <span class="badge badge-{{ u.role }}">{{ u.role }}</span>
+                        </td>
+                        <td>{{ u.created_at[:10] }}</td>
+                        <td style="text-align: right;">
+                            <i class="fas fa-edit action-icon"
+                                onclick="openEditModal({{ u.id }}, '{{ u.username }}', '{{ u.role }}')"
+                                title="Éditer"></i>
+                            {% if u.id != user.id %}
+                            <i class="fas fa-trash action-icon delete" onclick="deleteUser({{ u.id }})"
+                                title="Supprimer"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Ajout/Edit -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Nouvel Utilisateur</h3>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+
+                <div class="form-group">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" id="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="password" placeholder="Laisser vide si inchangé (mode édition)">
+                </div>
+
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select id="role">
+                        <option value="member">Membre</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('userModal');
+        const form = document.getElementById('userForm');
+        let isEdit = false;
+
+        function openAddModal() {
+            isEdit = false;
+            document.getElementById('modalTitle').textContent = "Nouvel Utilisateur";
+            document.getElementById('userId').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').required = true;
+            document.getElementById('password').placeholder = "Mot de passe requis";
+            document.getElementById('role').value = 'member';
+            modal.style.display = 'block';
+        }
+
+        function openEditModal(id, username, role) {
+            isEdit = true;
+            document.getElementById('modalTitle').textContent = "Éditer Utilisateur";
+            document.getElementById('userId').value = id;
+            document.getElementById('username').value = username;
+            document.getElementById('username').disabled = true; // On ne change pas le username
+            document.getElementById('password').required = false;
+            document.getElementById('password').placeholder = "Laisser vide si inchangé";
+            document.getElementById('role').value = role;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('role', role);
+            if (password) formData.append('password', password);
+
+            try {
+                let url = '/api/users';
+                let method = 'POST';
+
+                if (isEdit) {
+                    url = `/api/users/${id}`;
+                    method = 'PUT';
+                } else {
+                    // Pour la creation, mdp obligatoire
+                    if (!password) { alert('Mot de passe requis'); return; }
+                    formData.append('password', password);
+                }
+
+                const res = await fetch(url, {
+                    method: method,
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + (data.error || 'Inconnue'));
+                }
+
+            } catch (err) {
+                alert('Erreur réseau');
+            }
+        });
+
+        async function deleteUser(id) {
+            if (!confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) return;
+
+            try {
+                const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            } catch (err) {
+                alert('Erreur réseau');
+            }
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

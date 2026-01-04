@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Veille Niger - Dashboard Professionnel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -50,22 +51,88 @@
             font-weight: 600;
         }
 
-        .sync-button {
-            background: white;
-            color: #E05206;
+        /* Boutons Premium */
+        .sync-button,
+        .btn-settings,
+        .btn-logout {
+            background: linear-gradient(135deg, #E05206 0%, #ff7e38 100%);
+            color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(224, 82, 6, 0.2);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .sync-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        .sync-button:hover,
+        .btn-settings:hover,
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(224, 82, 6, 0.3);
+            filter: brightness(110%);
         }
+
+        .btn-settings {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            box-shadow: 0 4px 6px rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+            box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);
+        }
+
+        /* Actions Table */
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-validate {
+            background: linear-gradient(135deg, #28a745, #218838);
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+
+        .btn-action:hover {
+            transform: scale(1.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
 
         .container {
             max-width: 1800px;
@@ -111,12 +178,112 @@
             margin-bottom: 20px;
         }
 
+        .badge-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .badge-member_validated {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .badge-validated {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .badge-rejected {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        /* Priorités */
+        .badge-urgent {
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+
+        .badge-modéré {
+            background-color: #fd7e14;
+            color: white;
+        }
+
+        .badge-faible {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-validate {
+            background-color: #2ecc71;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-reject {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-approve {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
         .chart-container {
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            min-height: 350px;
+            height: 350px;
+            /* Force une hauteur fixe */
+            overflow: hidden;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 5px;
+        }
+
+        .chart-filter-btn {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .chart-filter-btn:hover {
+            background: #f1f3f5;
+        }
+
+        .chart-filter-btn.active {
+            background: #E05206;
+            color: white;
+            border-color: #E05206;
         }
 
         .chart-title {
@@ -250,7 +417,24 @@
         }
 
         .actions-cell {
-            width: 120px;
+            width: 140px;
+            white-space: nowrap;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px;
+            /* Slightly tighter padding for scroll area */
+        }
+
+        /* Personnalisation de la scrollbar pour les actions */
+        .actions-cell::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .actions-cell::-webkit-scrollbar-thumb {
+            background: #dee2e6;
+            border-radius: 4px;
         }
 
         /* Badges sentiment avec couleurs */
@@ -285,26 +469,43 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 11px;
-            margin-right: 3px;
             transition: all 0.2s;
         }
 
         .btn-edit {
-            background: #007bff;
+            background: #6c757d;
             color: white;
         }
 
-        .btn-edit:hover {
-            background: #0056b3;
+        .btn-link {
+            background: #17a2b8;
+            color: white;
         }
 
-        .btn-link {
+        .btn-approve {
             background: #28a745;
             color: white;
         }
 
-        .btn-link:hover {
-            background: #1e7e34;
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-validate {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .btn i {
+            margin: 0;
+        }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
         }
 
         /* Modal */
@@ -434,69 +635,202 @@
             background: #555;
         }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        niger: {
+                            orange: '#E05206',
+                            green: '#009A44',
+                            white: '#FFFFFF',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Keep some essential legacy styles or animations */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            z-index: 2000;
+            display: none;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        /* Custom scrollbar for tables */
+        .platform-table::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .platform-table::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .platform-table::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .platform-table::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Transition for table rows */
+        tbody tr {
+            transition: all 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+    </style>
 </head>
 
-<body>
-    <div class="header">
-        <div class="header-content">
-            <div class="logo-section">
-                <img src="/static/images/logo.png" alt="Niger Logo" class="logo">
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen">
+    <!-- Header with Niger Flag Accent -->
+    <header class="bg-[#1e293b] text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1.5 flex transition-all">
+            <div class="flex-1 bg-niger-orange"></div>
+            <div class="flex-1 bg-white"></div>
+            <div class="flex-1 bg-niger-green"></div>
+        </div>
+
+        <div class="max-w-[1600px] mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-5">
+                <div class="bg-white p-2 rounded-2xl shadow-inner">
+                    <img src="/static/images/logo.png" alt="Niger Logo" class="h-12 w-auto">
+                </div>
                 <div>
-                    <h1>Veille Niger - Dashboard Professionnel</h1>
-                    <p style="font-size: 13px; opacity: 0.9;">Surveillance médiatique multi-plateformes</p>
+                    <h1 class="text-2xl font-bold tracking-tight">Veille Niger</h1>
+                    <p class="text-slate-400 text-sm font-medium">Surveillance médiatique multi-plateformes</p>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <a href="/settings"
-                    style="background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-size: 14px; font-weight: 600; display: flex; align-items: center;">
-                    Paramètres
+
+            <div class="flex flex-wrap justify-center gap-3">
+                {% if user.role == 'admin' %}
+                <a href="/executive-dashboard"
+                    class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 transition px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md">
+                    <i class="fas fa-chart-line"></i> Vue Exécutive
                 </a>
-                <button class="sync-button" onclick="syncToSheets()">
-                    Synchroniser Google Sheets
+                {% endif %}
+                <button onclick="syncToSheets()"
+                    class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 transition px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md">
+                    <i class="fas fa-sync"></i> Sync. Sheets
                 </button>
+                <a href="/settings"
+                    class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 transition px-5 py-2.5 rounded-xl font-semibold text-sm">
+                    <i class="fas fa-cog"></i> Paramètres
+                </a>
+                <a href="/logout"
+                    class="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 transition px-5 py-2.5 rounded-xl font-semibold text-sm">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
             </div>
         </div>
-    </div>
+    </header>
 
-    <div class="container">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- User Context Bar -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center gap-4 mb-8">
+            <div class="w-10 h-10 bg-orange-50 text-niger-orange rounded-full flex items-center justify-center text-lg">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div>
+                <span class="font-bold text-slate-800">{{ user.username }}</span>
+                <span class="mx-2 text-slate-300">|</span>
+                <span class="text-sm font-semibold uppercase tracking-wider text-slate-500">{{ user.role }}</span>
+            </div>
+
+            <div class="ml-auto flex gap-3">
+                {% if user.role == 'admin' %}
+                <a href="/admin/users"
+                    class="px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition font-bold text-sm">Gestion
+                    des Utilisateurs</a>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Statistiques globales -->
-        <div class="global-stats">
-            <div class="stat-widget">
-                <div class="stat-label">Total Articles</div>
-                <div class="stat-value">{{ stats.total }}</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-niger-orange">
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 text-slate-400">Total
+                    Articles</div>
+                <div class="text-3xl font-bold">{{ stats.total }}</div>
             </div>
-            <div class="stat-widget" style="border-left-color: #28a745;">
-                <div class="stat-label">Positif</div>
-                <div class="stat-value" style="color: #28a745;">{{ stats.positif }}</div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+                <div class="text-emerald-500 text-xs font-bold uppercase tracking-wider mb-1 text-emerald-400">Positif
+                </div>
+                <div class="text-3xl font-bold text-emerald-600">{{ stats.positif }}</div>
             </div>
-            <div class="stat-widget" style="border-left-color: #dc3545;">
-                <div class="stat-label">Négatif</div>
-                <div class="stat-value" style="color: #dc3545;">{{ stats.negatif }}</div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
+                <div class="text-rose-500 text-xs font-bold uppercase tracking-wider mb-1 text-rose-400">Négatif</div>
+                <div class="text-3xl font-bold text-rose-600">{{ stats.negatif }}</div>
             </div>
-            <div class="stat-widget" style="border-left-color: #6c757d;">
-                <div class="stat-label">Neutre</div>
-                <div class="stat-value" style="color: #6c757d;">{{ stats.neutre }}</div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-slate-400">
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 text-slate-400">Neutre</div>
+                <div class="text-3xl font-bold text-slate-600">{{ stats.neutre }}</div>
             </div>
         </div>
 
         <!-- Graphiques d'analyse -->
-        <div class="charts-row">
-            <div class="chart-container">
-                <h3 class="chart-title">Répartition des Sentiments</h3>
-                <canvas id="sentimentPieChart"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-indigo-500"></i> Répartition Globale
+                    </h3>
+                </div>
+                <div class="h-64"><canvas id="sentimentChart"></canvas></div>
             </div>
-            <div class="chart-container">
-                <h3 class="chart-title">Évolution Temporelle (7 derniers jours)</h3>
-                <canvas id="sentimentTrendChart"></canvas>
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-niger-orange"></i> Évolution du Sentiment
+                    </h3>
+                    <div class="flex bg-slate-100 p-1 rounded-xl">
+                        <button
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white shadow-sm text-slate-800"
+                            onclick="updateChart('day', this)">7 Jours</button>
+                        <button
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-800"
+                            onclick="updateChart('month', this)">Mois</button>
+                        <button
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-800"
+                            onclick="updateChart('year', this)">An</button>
+                    </div>
+                </div>
+                <div class="h-64"><canvas id="evolutionChart"></canvas></div>
             </div>
         </div>
 
-        <!-- Tableau général (toutes plateformes) -->
+        <!-- Tableau général -->
         <div class="platform-card" style="margin-bottom: 20px;">
             <div class="platform-header">
                 <div class="platform-title">Vue Générale - Toutes Plateformes</div>
                 <div class="platform-stats">
-                    <span class="mini-badge total">{{ stats.total }} articles</span>
+                    <span class="mini-badge total">{{ (stats.total or 0) }} articles</span>
                 </div>
             </div>
             <div class="platform-table" style="max-height: 500px;">
@@ -504,9 +838,10 @@
                     <thead>
                         <tr>
                             <th class="date-cell">Date</th>
-                            <th style="width: 130px;">Plateforme</th>
+                            <th style="width: 100px;">Canal</th>
                             <th class="author-cell">Auteur</th>
                             <th class="content-cell">Contenu</th>
+                            <th style="width: 80px;">Priorité</th>
                             <th class="sentiment-cell">Tonalité</th>
                             <th class="actions-cell">Actions</th>
                         </tr>
@@ -514,27 +849,65 @@
                     <tbody>
                         {% for article in posts[:50] %}
                         <tr>
-                            <td class="date-cell">{{ article.Date[:16] if article.Date else article.date[:16] }}</td>
-                            <td style="font-size: 11px; font-weight: 600; color: #495057;">
-                                {{ article.Plateforme if article.Plateforme else article.platform }}
+                            <td class="date-cell">{{ (article.date or article.Date or '')[:16] }}</td>
+                            <td style="font-size: 11px; font-weight: 600; color: #495057;">{{ article.canal or 'Web' }}
                             </td>
-                            <td class="author-cell" title="{{ article.Auteur if article.Auteur else article.author }}">
-                                {{ (article.Auteur if article.Auteur else article.author)[:20] }}
-                            </td>
-                            <td class="content-cell"
-                                title="{{ article.Contenu if article.Contenu else article.content }}">
-                                {{ (article.Contenu if article.Contenu else article.content)[:80] }}
-                            </td>
-                            <td class="sentiment-cell">
+                            <td class="author-cell" title="{{ article.author or article.Auteur or '' }}">{{
+                                (article.author or article.Auteur or '')[:20] }}</td>
+                            <td class="content-cell" title="{{ article.content or article.Contenu or '' }}">{{
+                                (article.content or article.Contenu or '')[:80] }}</td>
+                            <td class="px-6 py-4">
+                                {% set p = (article.priority or 'Faible')|lower %}
                                 <span
-                                    class="badge badge-{{ (article.Tonalité if article.Tonalité else article.sentiment)|lower }}">
-                                    {{ article.Tonalité if article.Tonalité else article.sentiment }}
+                                    class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase {% if 'urgent' in p or 'élevé' in p %}bg-rose-100 text-rose-700{% elif 'modéré' in p %}bg-amber-100 text-amber-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    {{ article.priority or 'Faible' }}
                                 </span>
                             </td>
-                            <td class="actions-cell">
-                                <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
-                                <button class="btn btn-link"
-                                    onclick="window.open('{{ article.URL if article.URL else article.url }}', '_blank')">Lien</button>
+                            <td class="px-6 py-4">
+                                {% set s = (article.sentiment or article.Tonalité or 'neutre')|lower %}
+                                <span
+                                    class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase flex items-center gap-1 w-fit {% if 'positif' in s %}bg-emerald-100 text-emerald-700{% elif 'négatif' in s or 'negatif' in s %}bg-rose-100 text-rose-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                                    <i
+                                        class="fas {% if 'positif' in s %}fa-smile{% elif 'négatif' in s or 'negatif' in s %}fa-frown{% else %}fa-meh{% endif %}"></i>
+                                    {{ article.sentiment or article.Tonalité or 'Neutre' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    {% if user.role == 'admin' %}
+                                    <button
+                                        class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-id="{{ article.id or 0 }}"
+                                        onclick="editArticle(this.dataset.id, 'validated')" title="Valider"><i
+                                            class="fas fa-check text-xs"></i></button>
+                                    <button
+                                        class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-id="{{ article.id or 0 }}"
+                                        onclick="validateArticle(this.dataset.id, 'rejected')" title="Rejeter"><i
+                                            class="fas fa-times text-xs"></i></button>
+                                    {% else %}
+                                    <button
+                                        class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-id="{{ article.id or 0 }}"
+                                        onclick="editArticle(this.dataset.id, 'validated_request')" title="Soumettre"><i
+                                            class="fas fa-paper-plane text-xs"></i></button>
+                                    <button
+                                        class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-id="{{ article.id or 0 }}" onclick="editArticle(this.dataset.id)"
+                                        title="Éditer"><i class="fas fa-edit text-xs"></i></button>
+                                    {% endif %}
+                                    <button
+                                        class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        onclick="window.open('{{ article.url or article.URL or '#' }}', '_blank')"
+                                        title="Lien"><i class="fas fa-external-link-alt text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                                <i class="fas fa-inbox text-4xl mb-3 opacity-20"></i>
+                                <p class="text-sm font-medium">Aucune donnée disponible</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -543,44 +916,83 @@
             </div>
         </div>
 
-        <!-- Grille 2x3 des plateformes -->
-        <div class="platforms-grid">
-            <!-- Ligne 1 : Google News + Facebook -->
-            {% for platform_name in ['Google News (Deep)', 'Facebook'] %}
+        <!-- Grille des plateformes -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-10">
+            {% for platform_name in ['Google News (Deep)', 'Facebook', 'LinkedIn', 'Twitter/X', 'Instagram'] %}
             {% if platform_name in platforms %}
-            <div class="platform-card">
-                <div class="platform-header">
-                    <div class="platform-title">{{ platform_name }}</div>
-                    <div class="platform-stats">
-                        <span class="mini-badge total">{{ platform_stats[platform_name].total }}</span>
-                        <span class="mini-badge positive">+{{ platform_stats[platform_name].positif }}</span>
-                        <span class="mini-badge negative">-{{ platform_stats[platform_name].negatif }}</span>
-                    </div>
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[500px]">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                        {% if 'Google' in platform_name %}<i class="fab fa-google text-blue-500"></i>
+                        {% elif 'Facebook' in platform_name %}<i class="fab fa-facebook text-blue-600"></i>
+                        {% elif 'LinkedIn' in platform_name %}<i class="fab fa-linkedin text-blue-700"></i>
+                        {% elif 'Twitter' in platform_name %}<i class="fab fa-twitter text-sky-400"></i>
+                        {% elif 'Instagram' in platform_name %}<i class="fab fa-instagram text-pink-600"></i>
+                        {% endif %}
+                        {{ platform_name }}
+                    </h3>
+                    <span
+                        class="bg-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200">{{
+                        (platform_stats[platform_name] or {}).total or 0 }} articles</span>
                 </div>
-                <div class="platform-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="date-cell">Date</th>
-                                <th class="author-cell">Auteur</th>
-                                <th class="content-cell">Contenu</th>
-                                <th class="sentiment-cell">Tonalité</th>
-                                <th class="actions-cell">Actions</th>
+
+                <div class="overflow-y-auto platform-table flex-grow">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50/50 sticky top-0 z-10">
+                            <tr
+                                class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="px-4 py-3 w-32">Date</th>
+                                <th class="px-4 py-3 w-32">Auteur</th>
+                                <th class="px-4 py-3">Contenu</th>
+                                <th class="px-4 py-3 w-28">Tonalité</th>
+                                <th class="px-4 py-3 w-28 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-50">
                             {% for article in platforms[platform_name] %}
-                            <tr>
-                                <td class="date-cell">{{ article.Date[:16] }}</td>
-                                <td class="author-cell" title="{{ article.Auteur }}">{{ article.Auteur[:20] }}</td>
-                                <td class="content-cell" title="{{ article.Contenu }}">{{ article.Contenu[:80] }}</td>
-                                <td class="sentiment-cell">
-                                    <span class="badge badge-{{ article.Tonalité|lower }}">{{ article.Tonalité }}</span>
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-4 py-3 text-[10px] text-slate-400 font-medium">{{ (article.date or
+                                    article.Date or '')[:16] }}</td>
+                                <td class="px-4 py-3 text-xs font-bold text-slate-700 truncate max-w-[100px]">{{
+                                    (article.author or article.Auteur or '') }}</td>
+                                <td class="px-4 py-3 text-xs text-slate-500 line-clamp-1 mt-2">{{ article.content or
+                                    article.Contenu }}</td>
+                                <td class="px-4 py-3">
+                                    {% set s = (article.sentiment or article.Tonalité or 'neutre')|lower %}
+                                    <span
+                                        class="px-2 py-0.5 rounded text-[9px] font-bold uppercase {% if 'positif' in s %}text-emerald-600 bg-emerald-50{% elif 'négatif' in s or 'negatif' in s %}text-rose-600 bg-rose-50{% else %}text-slate-400 bg-slate-100{% endif %}">
+                                        {{ article.sentiment or article.Tonalité or 'Neutre' }}
+                                    </span>
                                 </td>
-                                <td class="actions-cell">
-                                    <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
-                                    <button class="btn btn-link"
-                                        onclick="window.open('{{ article.URL }}', '_blank')">Lien</button>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex justify-end gap-1">
+                                        {% if user.role == 'admin' %}
+                                        <button
+                                            class="w-7 h-7 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center"
+                                            data-id="{{ article.id or 0 }}"
+                                            onclick="editArticle(this.dataset.id, 'validated')"><i
+                                                class="fas fa-check text-[10px]"></i></button>
+                                        <button
+                                            class="w-7 h-7 rounded bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center justify-center"
+                                            data-id="{{ article.id or 0 }}"
+                                            onclick="validateArticle(this.dataset.id, 'rejected')"><i
+                                                class="fas fa-times text-[10px]"></i></button>
+                                        {% else %}
+                                        <button
+                                            class="w-7 h-7 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center"
+                                            data-id="{{ article.id or 0 }}"
+                                            onclick="editArticle(this.dataset.id, 'validated_request')"><i
+                                                class="fas fa-check text-[10px]"></i></button>
+                                        <button
+                                            class="w-7 h-7 rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center"
+                                            data-id="{{ article.id or 0 }}" onclick="editArticle(this.dataset.id)"><i
+                                                class="fas fa-edit text-[10px]"></i></button>
+                                        {% endif %}
+                                        <button
+                                            class="w-7 h-7 rounded bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center"
+                                            onclick="window.open('{{ article.url or article.URL or '#' }}', '_blank')"><i
+                                                class="fas fa-external-link-alt text-[10px]"></i></button>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -590,98 +1002,70 @@
             </div>
             {% endif %}
             {% endfor %}
-
-            <!-- Ligne 2 : LinkedIn + Twitter -->
-            {% for platform_name in ['LinkedIn', 'Twitter/X'] %}
-            {% if platform_name in platforms %}
-            <div class="platform-card">
-                <div class="platform-header">
-                    <div class="platform-title">{{ platform_name }}</div>
-                    <div class="platform-stats">
-                        <span class="mini-badge total">{{ platform_stats[platform_name].total }}</span>
-                        <span class="mini-badge positive">+{{ platform_stats[platform_name].positif }}</span>
-                        <span class="mini-badge negative">-{{ platform_stats[platform_name].negatif }}</span>
-                    </div>
-                </div>
-                <div class="platform-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="date-cell">Date</th>
-                                <th class="author-cell">Auteur</th>
-                                <th class="content-cell">Contenu</th>
-                                <th class="sentiment-cell">Tonalité</th>
-                                <th class="actions-cell">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for article in platforms[platform_name] %}
-                            <tr>
-                                <td class="date-cell">{{ article.Date[:16] }}</td>
-                                <td class="author-cell" title="{{ article.Auteur }}">{{ article.Auteur[:20] }}</td>
-                                <td class="content-cell" title="{{ article.Contenu }}">{{ article.Contenu[:80] }}</td>
-                                <td class="sentiment-cell">
-                                    <span class="badge badge-{{ article.Tonalité|lower }}">{{ article.Tonalité }}</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
-                                    <button class="btn btn-link"
-                                        onclick="window.open('{{ article.URL }}', '_blank')">Lien</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-
-            <!-- Ligne 3 : Instagram (pleine largeur) -->
-            {% if 'Instagram' in platforms %}
-            <div class="platform-card" style="grid-column: 1 / -1;">
-                <div class="platform-header">
-                    <div class="platform-title">Instagram</div>
-                    <div class="platform-stats">
-                        <span class="mini-badge total">{{ platform_stats['Instagram'].total }}</span>
-                        <span class="mini-badge positive">+{{ platform_stats['Instagram'].positif }}</span>
-                        <span class="mini-badge negative">-{{ platform_stats['Instagram'].negatif }}</span>
-                    </div>
-                </div>
-                <div class="platform-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="date-cell">Date</th>
-                                <th class="author-cell">Auteur</th>
-                                <th class="content-cell">Contenu</th>
-                                <th class="sentiment-cell">Tonalité</th>
-                                <th class="actions-cell">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for article in platforms['Instagram'] %}
-                            <tr>
-                                <td class="date-cell">{{ article.Date[:16] }}</td>
-                                <td class="author-cell" title="{{ article.Auteur }}">{{ article.Auteur[:20] }}</td>
-                                <td class="content-cell" title="{{ article.Contenu }}">{{ article.Contenu[:80] }}</td>
-                                <td class="sentiment-cell">
-                                    <span class="badge badge-{{ article.Tonalité|lower }}">{{ article.Tonalité }}</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="btn btn-edit" onclick="editArticle({{ article.id }})">Éditer</button>
-                                    <button class="btn btn-link"
-                                        onclick="window.open('{{ article.URL }}', '_blank')">Lien</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% endif %}
         </div>
+        {% endfor %}
+        </tbody>
+        </table>
     </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    </div>
+
+    <!-- Autres Plateformes (Dynamique) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-10">
+        {% for platform_name, platform_articles in platforms.items() %}
+        {% if platform_name not in ['Google News (Deep)', 'Facebook', 'LinkedIn', 'Twitter/X', 'Instagram'] %}
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[500px]">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-rss text-orange-500"></i> {{ platform_name }}
+                </h3>
+                <span
+                    class="bg-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200">{{
+                    platform_articles|length }} articles</span>
+            </div>
+
+            <div class="overflow-y-auto platform-table flex-grow">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50/50 sticky top-0 z-10">
+                        <tr
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                            <th class="px-4 py-3 w-32">Date</th>
+                            <th class="px-4 py-3 w-32">Auteur</th>
+                            <th class="px-4 py-3">Contenu</th>
+                            <th class="px-4 py-3 w-28 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for article in platform_articles %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-4 py-3 text-[10px] text-slate-400 font-medium">{{ (article.date or
+                                article.Date or '')[:16] }}</td>
+                            <td class="px-4 py-3 text-xs font-bold text-slate-700 truncate max-w-[100px]">{{
+                                (article.author or article.Auteur or '') }}</td>
+                            <td class="px-4 py-3 text-xs text-slate-500 line-clamp-1 mt-2">{{ article.content or
+                                article.Contenu }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="flex justify-end gap-1">
+                                    <button
+                                        class="w-7 h-7 rounded bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        onclick="window.open('{{ article.url or article.URL or '#' }}', '_blank')"><i
+                                            class="fas fa-external-link-alt text-[10px]"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+    </div>
+
 
     <!-- Modal d'édition -->
     <div id="editModal" class="modal">
@@ -691,228 +1075,585 @@
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <form id="editForm">
+                <h3>Édition / Validation de l'Article</h3>
                 <input type="hidden" id="articleId">
+                <input type="hidden" id="validationPendingStatus">
+                <!-- Stocke le statut cible (validated ou validated_request) -->
 
-                <div class="form-group">
-                    <label>Auteur</label>
-                    <input type="text" id="editAuteur" required>
+                <!-- Modal d'édition - Refactored with Tailwind -->
+                <div id="editModal" class="fixed inset-0 z-[1000] hidden overflow-y-auto" aria-labelledby="modal-title"
+                    role="dialog" aria-modal="true">
+                    <div
+                        class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                        <!-- Overlay -->
+                        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                            onclick="closeModal()"></div>
+
+                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
+                            aria-hidden="true">&#8203;</span>
+
+                        <div
+                            class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-200">
+                            <!-- Niger Flag Accent Top -->
+                            <div class="h-1.5 flex">
+                                <div class="flex-1 bg-niger-orange"></div>
+                                <div class="flex-1 bg-white"></div>
+                                <div class="flex-1 bg-niger-green"></div>
+                            </div>
+
+                            <div class="bg-white px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-xl font-bold text-slate-800" id="modal-title">Édition / Validation
+                                        de l'Article</h2>
+                                    <p class="text-slate-400 text-xs font-medium uppercase tracking-widest mt-1">Système
+                                        de Certification Veille Niger</p>
+                                </div>
+                                <button onclick="closeModal()"
+                                    class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition flex items-center justify-center">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+
+                            <form id="editForm" class="p-8 space-y-6">
+                                <input type="hidden" id="articleId">
+                                <input type="hidden" id="validationPendingStatus">
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2 lg:col-span-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Auteur</label>
+                                        <input type="text" id="editAuteur" required
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-semibold">
+                                    </div>
+
+                                    <div class="space-y-2 lg:col-span-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Contenu
+                                            de l'article</label>
+                                        <textarea id="editContenu" required rows="4"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 leading-relaxed"></textarea>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Tonalité
+                                            / Sentiment</label>
+                                        <select id="editTonalite"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
+                                            <option value="Positif">✅ Positif</option>
+                                            <option value="Négatif">❌ Négatif</option>
+                                            <option value="Neutre">⚪ Neutre</option>
+                                            <option value="Mixte">🔷 Mixte</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Priorité
+                                            Stratégique</label>
+                                        <select id="editPriority"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
+                                            <option value="Faible">Faible</option>
+                                            <option value="Modéré" selected>Modéré</option>
+                                            <option value="Urgent">⚠️ Urgent</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Initiales
+                                            Veilleur(se)</label>
+                                        <select id="editVeilleur"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                            <option value="">Sélectionner...</option>
+                                            <option value="ABK">ABK</option>
+                                            <option value="ABO">ABO</option>
+                                            <option value="ASM">ASM</option>
+                                            <option value="BMS">BMS</option>
+                                            <option value="MDB">MDB</option>
+                                            <option value="MSD">MSD</option>
+                                            <option value="NSG">NSG</option>
+                                            <option value="NMH">NMH</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Canal
+                                            de Diffusion</label>
+                                        <select id="editCanal"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
+                                            <option value="">Sélectionner...</option>
+                                            <option value="Presse écrite">📰 Presse écrite</option>
+                                            <option value="Radio">🎙️ Radio</option>
+                                            <option value="Télévision">📺 Télévision</option>
+                                            <option value="Presse en ligne">🌐 Presse en ligne</option>
+                                            <option value="Réseaux Sociaux">📱 Réseaux Sociaux</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Source
+                                            / Médium</label>
+                                        <input type="text" id="editSourceMedia"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Thématique</label>
+                                        <select id="editTheme"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                            <option value="">Sélectionner...</option>
+                                            <option value="Agriculture">Agriculture</option>
+                                            <option value="Culture">Culture</option>
+                                            <option value="Diplomatie">Diplomatie</option>
+                                            <option value="Économie">Économie</option>
+                                            <option value="Éducation">Éducation</option>
+                                            <option value="Environnement">Environnement</option>
+                                            <option value="Gouvernance">Gouvernance</option>
+                                            <option value="Numérique / TIC">Numérique / TIC</option>
+                                            <option value="Politique">Politique</option>
+                                            <option value="Santé">Santé</option>
+                                            <option value="Sécurité">Sécurité</option>
+                                            <option value="Sport">Sport</option>
+                                            <option value="Société / Genre">Société / Genre</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Sous-thème
+                                            (Préciser)</label>
+                                        <input type="text" id="editSubTheme"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Portée
+                                            / Audience</label>
+                                        <select id="editAudience"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                            <option value="">Sélectionner...</option>
+                                            <option value="Faible (< 1 000)">Faible (&lt; 1 000)</option>
+                                            <option value="Moyenne (1 000 – 10 000)">Moyenne (1 000 – 10 000)</option>
+                                            <option value="Importante (10 000 – 50 000)">Importante (10 000 – 50 000)
+                                            </option>
+                                            <option value="Élevée (50 000 – 100 000)">Élevée (50 000 – 100 000)</option>
+                                            <option value="Très élevée (> 100 000)">Très élevée (&gt; 100 000)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Action
+                                            recommandée</label>
+                                        <select id="editAction"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                            <option value="">Sélectionner...</option>
+                                            <option value="Vérifier">Vérifier</option>
+                                            <option value="Démentir">Démentir</option>
+                                            <option value="Relayer">Relayer</option>
+                                            <option value="Escalader (alerte)">Escalader (alerte)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-2 lg:col-span-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Lien
+                                            Source (URL)</label>
+                                        <input type="url" id="editURL" required
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-indigo-600 underline text-sm">
+                                    </div>
+
+                                    <div class="space-y-2 lg:col-span-2">
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Observation
+                                            / Commentaire</label>
+                                        <textarea id="editObservation" rows="2"
+                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-600 italic"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="pt-6 border-t border-slate-100 flex flex-wrap gap-4">
+                                    <button type="submit" id="saveOnlyBtn"
+                                        class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-2xl font-bold transition-all shadow-sm">
+                                        Sauvegarder
+                                    </button>
+                                    <button type="button" id="saveAndValidateBtn"
+                                        class="flex-1 px-6 py-4 bg-niger-orange text-white hover:bg-orange-700 rounded-2xl font-bold transition-all shadow-lg shadow-orange-900/20">
+                                        Sauvegarder et Valider
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Contenu</label>
-                    <textarea id="editContenu" required></textarea>
+                <!-- Notification system -->
+                <div id="notification"
+                    class="fixed bottom-8 right-8 z-[2000] max-w-sm w-full transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+                    <div
+                        class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-4">
+                        <div id="notification-icon"
+                            class="w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div id="notification-text" class="text-sm font-medium"></div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Tonalité</label>
-                    <select id="editTonalite">
-                        <option value="Positif">Positif</option>
-                        <option value="Négatif">Négatif</option>
-                        <option value="Neutre">Neutre</option>
-                    </select>
-                </div>
+                <script>
+                    // Informations du membre connecté (depuis le template Jinja)
+                    const currentUser = {
+                        username: "{{ user.username }}",
+                        role: "{{ user.role }}",
+                        theme: "{{ user_theme or '' }}",
+                        // Extraire les initiales depuis le username (ex: "john_doe" -> "JD")
+                        initials: "{{ user.username }}".split('_').map(part => part[0].toUpperCase()).join('').substring(0, 3)
+                    };
 
-                <div class="form-group">
-                    <label>URL</label>
-                    <input type="url" id="editURL" required>
-                </div>
+                    async function editArticle(id, targetStatus = null) {
+                        try {
+                            const response = await fetch(`/api/article/${id}`);
+                            const article = await response.json();
 
-                <button type="submit" class="btn-save">Sauvegarder</button>
-            </form>
-        </div>
-    </div>
+                            if (article.error) {
+                                showNotification(article.error, 'error');
+                                return;
+                            }
 
-    <div id="notification" class="notification"></div>
+                            document.getElementById('articleId').value = id;
+                            document.getElementById('validationPendingStatus').value = targetStatus || '';
+                            document.getElementById('editAuteur').value = article.author || '';
+                            document.getElementById('editContenu').value = article.content || '';
+                            document.getElementById('editTonalite').value = article.sentiment || 'Neutre';
 
-    <script>
-        async function editArticle(id) {
-            try {
-                const response = await fetch(`/api/article/${id}`);
-                const article = await response.json();
+                            // AUTO-FILL: Initiales du veilleur (utiliser les initiales du membre si vide)
+                            document.getElementById('editVeilleur').value = article.veilleur_initials || currentUser.initials;
 
-                if (article.error) {
-                    showNotification(article.error, 'error');
-                    return;
-                }
+                            document.getElementById('editCanal').value = article.canal || '';
+                            document.getElementById('editSourceMedia').value = article.source_media || '';
 
-                document.getElementById('articleId').value = id;
-                document.getElementById('editAuteur').value = article.author;
-                document.getElementById('editContenu').value = article.content;
-                document.getElementById('editTonalite').value = article.sentiment;
-                document.getElementById('editURL').value = article.url;
+                            // AUTO-FILL: Thème (utiliser le thème du membre si vide et si membre)
+                            if (currentUser.role === 'member' && currentUser.theme && !article.assigned_theme) {
+                                document.getElementById('editTheme').value = currentUser.theme;
+                            } else {
+                                document.getElementById('editTheme').value = article.assigned_theme || '';
+                            }
 
-                document.getElementById('editModal').style.display = 'block';
-            } catch (error) {
-                showNotification('Erreur chargement article', 'error');
-            }
-        }
+                            document.getElementById('editSubTheme').value = article.sub_theme || '';
+                            document.getElementById('editAudience').value = article.audience || '';
+                            document.getElementById('editAction').value = article.recommended_action || '';
+                            document.getElementById('editPriority').value = article.priority || 'Modéré';
+                            document.getElementById('editObservation').value = article.observation || '';
+                            document.getElementById('editURL').value = article.url || '';
 
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
+                            // Ajuster le bouton principal selon le contexte
+                            const validateBtn = document.getElementById('saveAndValidateBtn');
+                            if (targetStatus) {
+                                validateBtn.classList.remove('hidden');
+                                validateBtn.textContent = (targetStatus === 'validated') ? 'Sauvegarder et Valider' : 'Sauvegarder et Soumettre';
+                            } else {
+                                validateBtn.classList.add('hidden');
+                            }
 
-        document.getElementById('editForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const id = document.getElementById('articleId').value;
-            const data = {
-                author: document.getElementById('editAuteur').value,
-                content: document.getElementById('editContenu').value,
-                sentiment: document.getElementById('editTonalite').value,
-                url: document.getElementById('editURL').value
-            };
-
-            try {
-                const response = await fetch(`/api/article/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showNotification('Article mis à jour avec succès', 'success');
-                    closeModal();
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showNotification('Erreur lors de la mise à jour', 'error');
-                }
-            } catch (error) {
-                showNotification('Erreur réseau', 'error');
-            }
-        });
-
-        async function syncToSheets() {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = 'Synchronisation en cours...';
-
-            try {
-                const response = await fetch('/api/sync-to-sheets', { method: 'POST' });
-                const result = await response.json();
-
-                if (result.success) {
-                    showNotification(result.message, 'success');
-                } else {
-                    showNotification(result.error || 'Erreur', 'error');
-                }
-            } catch (error) {
-                showNotification('Erreur réseau', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Synchroniser Google Sheets';
-            }
-        }
-
-        function showNotification(message, type) {
-            const notif = document.getElementById('notification');
-            notif.textContent = message;
-            notif.className = `notification ${type}`;
-            notif.style.display = 'block';
-            setTimeout(() => notif.style.display = 'none', 4000);
-        }
-
-        window.onclick = function (event) {
-            if (event.target == document.getElementById('editModal')) {
-                closeModal();
-            }
-        }
-
-        // --- INITIALISATION DES GRAPHIQUES ---
-        document.addEventListener('DOMContentLoaded', function () {
-            // 1. Graphique en Disque (Pie Chart)
-            const pieCtx = document.getElementById('sentimentPieChart').getContext('2d');
-            new Chart(pieCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Positif', 'Négatif', 'Neutre'],
-                    datasets: [{
-                        data: [{{ stats.positif }}, {{ stats.negatif }}, {{ stats.neutre }}],
-            backgroundColor: ['#28a745', '#dc3545', '#6c757d'],
-            borderWidth: 1
-                    }]
-                },
-            options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-            });
-
-        // 2. Graphique en Courbe (Line Chart Trends)
-        const trendCtx = document.getElementById('sentimentTrendChart').getContext('2d');
-
-        // Préparation des données Trends
-        const rawTrends = [
-            {% for item in sentiment_trends %}
-        { day: "{{ item.day }}", sentiment: "{{ item.sentiment }}", count: { { item.count } } },
-        {% endfor %}
-            ];
-
-        // Grouper les données par jour pour Chart.js
-        const days = [...new Set(rawTrends.map(item => item.day))].sort();
-        const datasets = {
-            'Positif': days.map(day => {
-                const found = rawTrends.find(t => t.day === day && t.sentiment === 'Positif');
-                return found ? found.count : 0;
-            }),
-            'Négatif': days.map(day => {
-                const found = rawTrends.find(t => t.day === day && t.sentiment === 'Négatif');
-                return found ? found.count : 0;
-            }),
-            'Neutre': days.map(day => {
-                const found = rawTrends.find(t => t.day === day && t.sentiment === 'Neutre');
-                return found ? found.count : 0;
-            })
-        };
-
-        new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: days,
-                datasets: [
-                    {
-                        label: 'Positif',
-                        data: datasets['Positif'],
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Négatif',
-                        data: datasets['Négatif'],
-                        borderColor: '#dc3545',
-                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Neutre',
-                        data: datasets['Neutre'],
-                        borderColor: '#6c757d',
-                        backgroundColor: 'rgba(108, 117, 125, 0.1)',
-                        fill: true,
-                        tension: 0.3
+                            // Afficher le modal avec Tailwind
+                            document.getElementById('editModal').classList.remove('hidden');
+                        } catch (error) {
+                            showNotification('Erreur chargement article', 'error');
+                        }
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
-                },
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
-        });
-        });
-    </script>
+
+                    function closeModal() {
+                        document.getElementById('editModal').classList.add('hidden');
+                    }
+
+                    function showNotification(message, type = 'info') {
+                        const notif = document.getElementById('notification');
+                        const text = document.getElementById('notification-text');
+                        const icon = document.getElementById('notification-icon');
+
+                        text.textContent = message;
+
+                        // Ajuster l'icône et la couleur selon le type
+                        if (type === 'error') {
+                            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-rose-500 text-white';
+                            icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                        } else if (type === 'success') {
+                            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white';
+                            icon.innerHTML = '<i class="fas fa-check"></i>';
+                        } else {
+                            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white';
+                            icon.innerHTML = '<i class="fas fa-info-circle"></i>';
+                        }
+
+                        // Animation d'entrée
+                        notif.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+
+                        setTimeout(() => {
+                            // Animation de sortie
+                            notif.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 3000);
+                    }
+
+                    // Gestionnaire de soumission
+                    async function submitArticleForm(shouldValidate = false) {
+                        const id = document.getElementById('articleId').value;
+                        const targetStatus = document.getElementById('validationPendingStatus').value;
+
+                        const data = {
+                            author: document.getElementById('editAuteur').value,
+                            content: document.getElementById('editContenu').value,
+                            sentiment: document.getElementById('editTonalite').value,
+                            url: document.getElementById('editURL').value,
+                            veilleur_initials: document.getElementById('editVeilleur').value,
+                            canal: document.getElementById('editCanal').value,
+                            source_media: document.getElementById('editSourceMedia').value,
+                            assigned_theme: document.getElementById('editTheme').value,
+                            sub_theme: document.getElementById('editSubTheme').value,
+                            audience: document.getElementById('editAudience').value,
+                            recommended_action: document.getElementById('editAction').value,
+                            priority: document.getElementById('editPriority').value,
+                            observation: document.getElementById('editObservation').value
+                        };
+
+                        try {
+                            // 1. Mise à jour des informations (PUT)
+                            const updateRes = await fetch(`/api/article/${id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            const updateResult = await updateRes.json();
+
+                            if (!updateResult.success) {
+                                showNotification('Erreur lors de la mise à jour', 'error');
+                                return;
+                            }
+
+                            // 2. Validation si demandée (POST)
+                            if (shouldValidate && targetStatus) {
+                                const formData = new FormData();
+                                formData.append('status', targetStatus);
+                                const valRes = await fetch(`/api/article/${id}/validate`, { method: 'POST', body: formData });
+                                if (!valRes.ok) {
+                                    showNotification('Article mis à jour mais erreur de validation', 'warning');
+                                    return;
+                                }
+                            }
+
+                            showNotification('Opération réussie', 'success');
+                            closeModal();
+                            setTimeout(() => location.reload(), 1000);
+                        } catch (error) {
+                            showNotification('Erreur réseau', 'error');
+                        }
+                    }
+
+                    document.getElementById('editForm').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        submitArticleForm(false);
+                    });
+
+                    document.getElementById('saveAndValidateBtn').addEventListener('click', () => {
+                        submitArticleForm(true);
+                    });
+
+                    async function syncToSheets() {
+                        const btn = document.querySelector('.sync-button');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'Synchronisation...';
+                        }
+                        try {
+                            const response = await fetch('/api/sync-to-sheets', { method: 'POST' });
+                            const result = await response.json();
+                            showNotification(result.message || result.error, result.success ? 'success' : 'error');
+                        } catch (error) {
+                            showNotification('Erreur réseau', 'error');
+                        } finally {
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.textContent = 'Synchroniser Sheets';
+                            }
+                        }
+                    }
+
+                    let evolutionChart = null;
+
+                    async function updateChart(period, btn) {
+                        document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
+                        if (btn) btn.classList.add('active');
+
+                        // Déterminer la limite intelligente selon la période
+                        let limit = 7; // Default for 'day' and 'week' (7 days)
+                        if (period === 'month') limit = 12;
+                        else if (period === 'year') limit = 5;
+                        // 'day' and 'week' will now both use the default limit of 7.
+
+                        try {
+                            const response = await fetch(`/api/stats/trends?period=${period}&limit=${limit}`);
+                            const rawData = await response.json();
+
+                            // Transformation des données : [ {time_label, sentiment, count}, ... ] 
+                            // vers { labels: [], pos: [], neg: [] }
+                            const grouped = {};
+                            rawData.forEach(item => {
+                                const label = item.time_label;
+                                if (!grouped[label]) {
+                                    grouped[label] = { pos: 0, neg: 0, neut: 0 };
+                                }
+                                const sent = item.sentiment.toLowerCase();
+                                if (sent.includes('positif')) grouped[label].pos += item.count;
+                                else if (sent.includes('négatif') || sent.includes('negatif')) grouped[label].neg += item.count;
+                                else grouped[label].neut += item.count;
+                            });
+
+                            const labels = Object.keys(grouped).sort();
+                            const dataPos = labels.map(l => grouped[l].pos);
+                            const dataNeg = labels.map(l => grouped[l].neg);
+
+                            if (evolutionChart) {
+                                evolutionChart.data.labels = labels;
+                                evolutionChart.data.datasets[0].data = dataPos;
+                                evolutionChart.data.datasets[1].data = dataNeg;
+                                evolutionChart.update();
+                            }
+                        } catch (error) {
+                            console.error('Erreur lors de la mise à jour du graphique:', error);
+                        }
+                    }
+
+                    // Initialisation des graphiques avec thématique Niger
+                    const rawStats = {{ stats | tojson | safe }};
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Chart 1: Répartition Sentiment (Doughnut)
+                        const ctxPie = document.getElementById('sentimentChart');
+                        if (ctxPie) {
+                            new Chart(ctxPie.getContext('2d'), {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Positif', 'Négatif', 'Neutre'],
+                                    datasets: [{
+                                        data: [rawStats.positif, rawStats.negatif, rawStats.neutre],
+                                        backgroundColor: ['#009A44', '#E05206', '#CBD5E1'],
+                                        borderWidth: 0,
+                                        hoverOffset: 15
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    cutout: '75%',
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                usePointStyle: true,
+                                                padding: 20,
+                                                font: { family: 'Outfit', size: 12, weight: 'bold' }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // Chart 2: Evolution (Line)
+                        const ctxEvo = document.getElementById('evolutionChart');
+                        if (ctxEvo) {
+                            evolutionChart = new Chart(ctxEvo.getContext('2d'), {
+                                type: 'line',
+                                data: {
+                                    labels: [],
+                                    datasets: [
+                                        {
+                                            label: 'Positif',
+                                            borderColor: '#009A44',
+                                            backgroundColor: 'rgba(0, 154, 68, 0.1)',
+                                            data: [],
+                                            fill: true,
+                                            tension: 0.4,
+                                            borderWidth: 3,
+                                            pointBackgroundColor: '#009A44'
+                                        },
+                                        {
+                                            label: 'Négatif',
+                                            borderColor: '#E05206',
+                                            backgroundColor: 'rgba(224, 82, 6, 0.1)',
+                                            data: [],
+                                            fill: true,
+                                            tension: 0.4,
+                                            borderWidth: 3,
+                                            pointBackgroundColor: '#E05206'
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            display: false
+                                        },
+                                        tooltip: {
+                                            backgroundColor: '#1e293b',
+                                            padding: 12,
+                                            titleFont: { size: 14, weight: 'bold' },
+                                            bodyFont: { size: 13 },
+                                            cornerRadius: 12
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: { color: 'rgba(0,0,0,0.03)' },
+                                            ticks: { stepSize: 1, font: { family: 'Outfit' } }
+                                        },
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: { font: { family: 'Outfit' } }
+                                        }
+                                    }
+                                }
+                            });
+                            updateChart('day');
+                        }
+                    });
+
+                    // Fonction de validation globale
+                    async function validateArticle(id, status) {
+                        if (!id || id === '0') {
+                            showNotification('ID d\'article invalide', 'error');
+                            return;
+                        }
+                        if (!confirm('Confirmer le changement de statut ?')) return;
+                        const formData = new FormData();
+                        formData.append('status', status);
+                        try {
+                            const res = await fetch(`/api/article/${id}/validate`, { method: 'POST', body: formData });
+                            if (res.ok) {
+                                showNotification('Statut mis à jour', 'success');
+                                setTimeout(() => window.location.reload(), 800);
+                            } else {
+                                showNotification('Erreur lors de la validation', 'error');
+                            }
+                        } catch (e) {
+                            showNotification('Erreur réseau', 'error');
+                        }
+                    }
+
+                    window.onclick = (event) => {
+                        const modal = document.getElementById('editModal');
+                        if (event.target === modal) {
+                            closeModal();
+                        }
+                    };
+                </script>
 </body>
 
 </html>
