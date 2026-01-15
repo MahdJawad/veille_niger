@@ -1,0 +1,21 @@
+--- Database Source Check ---
+Total Articles: 2415
+
+--- Top Sources (get_top_sources_distribution) ---
+Agence Nigérienne de Presse: 401
+Le Sahel.org: 399
+Nigerdiaspora: 189
+RFI: 109
+tv5monde: 89
+Journal du Niger: 87
+Le Monde.fr: 76
+Jeune Afrique: 75
+DW: 72
+aNiamey.com: 67
+
+--- Raw Data Sample (First 5 articles) ---
+ID: 2415, Platform: Google News (Deep), Author: 'Le Parisien'
+ID: 2414, Platform: Google News (Deep), Author: 'Made in Marseille'
+ID: 2413, Platform: Google News (Deep), Author: 'La Croix'
+ID: 2412, Platform: Google News (Deep), Author: 'InfoMigrants'
+ID: 2411, Platform: Google News (Deep), Author: 'aNiamey.com'

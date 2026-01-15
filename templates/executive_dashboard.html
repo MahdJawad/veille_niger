@@ -50,27 +50,47 @@
 <body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
 
     <!-- Header -->
-    <header class="bg-[#1e293b] text-white py-10 px-8 lg:px-16 relative overflow-hidden">
-        <!-- Accent Stripes (Flag Theme) -->
-        <div class="absolute top-0 left-0 w-full h-2 flex">
+    <header class="bg-slate-900 text-white relative overflow-hidden pb-24 pt-8 px-8 lg:px-16 shadow-2xl">
+        <!-- Background Effects -->
+        <div class="absolute inset-0 z-0 opacity-20">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-niger-orange rounded-full blur-3xl -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-96 h-96 bg-niger-green rounded-full blur-3xl -ml-20 -mb-20"></div>
+        </div>
+
+        <!-- Flag Accent Line -->
+        <div class="absolute top-0 left-0 w-full h-1.5 flex z-20">
             <div class="flex-1 bg-niger-orange"></div>
             <div class="flex-1 bg-white"></div>
             <div class="flex-1 bg-niger-green"></div>
         </div>
 
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+        <div
+            class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
             <div>
-                <h1 class="text-4xl font-bold tracking-tight">Vue Exécutive</h1>
-                <p class="text-slate-400 mt-2 text-lg">Analyse Stratégique de Veille - République du Niger</p>
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-medium uppercase tracking-widest text-[#d1d5db] mb-3 backdrop-blur-sm">
+                    <span class="w-2 h-2 rounded-full bg-niger-green animate-pulse"></span>
+                    Live Dashboard
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white mb-2">
+                    Vue Exécutive
+                </h1>
+                <p class="text-slate-400 text-lg font-light max-w-2xl">
+                    Analyse stratégique et veille informationnelle pour la <strong
+                        class="text-slate-200 font-semibold">République du Niger</strong>.
+                </p>
             </div>
-            <div class="flex gap-4 no-print">
+
+            <div class="flex gap-4 no-print mt-4 md:mt-0">
                 <button onclick="window.print()"
-                    class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition px-6 py-3 rounded-xl font-semibold backdrop-blur-sm border border-white/10">
-                    <i class="fas fa-file-pdf"></i> Rapport PDF
+                    class="group flex items-center gap-3 bg-white/5 hover:bg-white/10 transition-all duration-300 px-6 py-3.5 rounded-2xl font-semibold backdrop-blur-md border border-white/10 hover:border-white/30 text-slate-300 hover:text-white">
+                    <i class="fas fa-file-pdf group-hover:scale-110 transition-transform"></i>
+                    <span>Rapport PDF</span>
                 </button>
                 <a href="/dashboard"
-                    class="flex items-center gap-2 bg-niger-orange hover:bg-orange-700 transition px-6 py-3 rounded-xl font-semibold shadow-lg shadow-orange-900/20">
-                    <i class="fas fa-arrow-left"></i> Retour
+                    class="group flex items-center gap-3 bg-gradient-to-r from-niger-orange to-[#ff6b2b] hover:shadow-[0_0_20px_rgba(224,82,6,0.4)] transition-all duration-300 px-6 py-3.5 rounded-2xl font-bold text-white shadow-lg border border-white/10">
+                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                    <span>Retour</span>
                 </a>
             </div>
         </div>
@@ -78,43 +98,85 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 pb-20">
 
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong class="font-bold">Erreur!</strong>
+            <span class="block sm:inline">{{ error }}</span>
+        </div>
+        {% endif %}
+
         <!-- KPI Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 mb-12">
             <!-- Total -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-niger-orange">
-                <div class="text-niger-orange text-xl mb-3"><i class="fas fa-newspaper"></i></div>
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Revus</div>
-                <div class="text-3xl font-bold mt-1">{{ summary.total }}</div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-orange-50 text-niger-orange flex items-center justify-center text-xl">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <span
+                        class="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-lg">Global</span>
+                </div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Revus</div>
+                <div class="text-3xl font-black text-slate-800">{{ summary.total if summary else 0 }}</div>
             </div>
+
             <!-- Social -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-500">
-                <div class="text-blue-500 text-xl mb-3"><i class="fab fa-facebook"></i></div>
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Réseaux Sociaux</div>
-                <div class="text-3xl font-bold mt-1 text-blue-600">{{ summary.social }}</div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-share-nodes"></i>
+                    </div>
+                </div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Réseaux Sociaux</div>
+                <div class="text-3xl font-black text-blue-600">{{ summary.social if summary else 0 }}</div>
             </div>
+
             <!-- Web -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-amber-500">
-                <div class="text-amber-500 text-xl mb-3"><i class="fas fa-globe"></i></div>
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Presse en ligne</div>
-                <div class="text-3xl font-bold mt-1 text-amber-600">{{ summary.web }}</div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                </div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Presse en ligne</div>
+                <div class="text-3xl font-black text-amber-600">{{ summary.web if summary else 0 }}</div>
             </div>
+
             <!-- TV -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-red-500">
-                <div class="text-red-500 text-xl mb-3"><i class="fas fa-tv"></i></div>
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Télévision</div>
-                <div class="text-3xl font-bold mt-1 text-red-600">{{ summary.tv }}</div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl">
+                        <i class="fas fa-tv"></i>
+                    </div>
+                </div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Télévision</div>
+                <div class="text-3xl font-black text-red-600">{{ summary.tv if summary else 0 }}</div>
             </div>
+
             <!-- Radio -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-niger-green">
-                <div class="text-niger-green text-xl mb-3"><i class="fas fa-microphone"></i></div>
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Radio</div>
-                <div class="text-3xl font-bold mt-1 text-niger-green">{{ summary.radio }}</div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-green-50 text-niger-green flex items-center justify-center text-xl">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                </div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Radio</div>
+                <div class="text-3xl font-black text-niger-green">{{ summary.radio if summary else 0 }}</div>
             </div>
+
             <!-- Print -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-slate-800">
-                <div class="text-slate-800 text-xl mb-3"><i class="fas fa-print"></i></div>
-                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider">Presse Écrite</div>
-                <div class="text-3xl font-bold mt-1 text-slate-900">{{ summary.press }}</div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xl">
+                        <i class="fas fa-print"></i>
+                    </div>
+                </div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Presse Écrite</div>
+                <div class="text-3xl font-black text-slate-800">{{ summary.press if summary else 0 }}</div>
             </div>
         </div>
 
@@ -197,10 +259,28 @@
         </footer>
     </main>
 
+    <!-- Données pour les graphiques (JSON) -->
+    <script id="data-weekly" type="application/json">{{ weekly_trends | tojson | safe }}</script>
+    <script id="data-themes" type="application/json">{{ themes | tojson | safe }}</script>
+    <script id="data-sentiments" type="application/json">{{ theme_sentiments | tojson | safe }}</script>
+    <script id="data-sources" type="application/json">{{ top_sources | tojson | safe }}</script>
+
     <script>
         // Options communes pour Chart.js
         Chart.defaults.font.family = "'Outfit', sans-serif";
         Chart.defaults.color = '#64748b';
+
+        // Helper safe parsing
+        function getJsonData(id, defaultVal) {
+            try {
+                const el = document.getElementById(id);
+                if (!el || !el.textContent) return defaultVal;
+                return JSON.parse(el.textContent) || defaultVal;
+            } catch (e) {
+                console.error('Error parsing JSON for ' + id, e);
+                return defaultVal;
+            }
+        }
 
         const nigerColors = {
             orange: '#E05206',
@@ -213,7 +293,7 @@
         };
 
         // 1. Weekly Trends
-        const weeklyData = {{ weekly_trends | tojson }};
+        const weeklyData = getJsonData('data-weekly', []);
         new Chart(document.getElementById('weeklyChart'), {
             type: 'line',
             data: {
@@ -244,7 +324,7 @@
         });
 
         // 2. Theme Bar Chart
-        const themeData = {{ themes | tojson }};
+        const themeData = getJsonData('data-themes', {});
         new Chart(document.getElementById('themeBarChart'), {
             type: 'bar',
             data: {
@@ -270,16 +350,16 @@
         });
 
         // 3. Theme Sentiment Chart
-        const themeSentiments = {{ theme_sentiments | tojson }};
+        const themeSentiments = getJsonData('data-sentiments', {});
         const thLabels = Object.keys(themeSentiments);
         new Chart(document.getElementById('themeSentimentChart'), {
             type: 'bar',
             data: {
                 labels: thLabels,
                 datasets: [
-                    { label: 'Positif', data: thLabels.map(l => themeSentiments[l].Positif), backgroundColor: nigerColors.lightGreen, borderRadius: 6 },
-                    { label: 'Neutre', data: thLabels.map(l => themeSentiments[l].Neutre), backgroundColor: nigerColors.neutre, borderRadius: 6 },
-                    { label: 'Négatif', data: thLabels.map(l => themeSentiments[l].Négatif), backgroundColor: nigerColors.red, borderRadius: 6 }
+                    { label: 'Positif', data: thLabels.map(l => (themeSentiments[l] || {}).Positif || 0), backgroundColor: nigerColors.lightGreen, borderRadius: 6 },
+                    { label: 'Neutre', data: thLabels.map(l => (themeSentiments[l] || {}).Neutre || 0), backgroundColor: nigerColors.neutre, borderRadius: 6 },
+                    { label: 'Négatif', data: thLabels.map(l => (themeSentiments[l] || {}).Négatif || 0), backgroundColor: nigerColors.red, borderRadius: 6 }
                 ]
             },
             options: {
@@ -294,7 +374,8 @@
         });
 
         // 4. Source Pie Chart
-        const sourceData = {{ top_sources | tojson }};
+        const sourceData = getJsonData('data-sources', []);
+        console.log('DEBUG Source Data:', sourceData);
         new Chart(document.getElementById('sourcePieChart'), {
             type: 'doughnut',
             data: {

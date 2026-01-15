@@ -380,6 +380,8 @@ class Database:
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM articles")
             total = cursor.fetchone()[0]
+            
+            # Récupérer la distribution par canal (si existant)
             cursor.execute('''
                 SELECT canal, COUNT(*) as count 
                 FROM articles 
@@ -387,6 +389,32 @@ class Database:
                 GROUP BY canal
             ''')
             canal_counts = {row['canal']: row['count'] for row in cursor.fetchall()}
+            
+            # Si pas de canal, essayer d'inférer depuis la plateforme pour les données existantes
+            if not canal_counts:
+                cursor.execute('''
+                    SELECT platform, COUNT(*) as count
+                    FROM articles
+                    GROUP BY platform
+                ''')
+                platform_counts = {row['platform']: row['count'] for row in cursor.fetchall()}
+                
+                social_platforms = ['Twitter', 'Twitter/X', 'Facebook', 'LinkedIn', 'Instagram']
+                
+                social_count = 0
+                web_count = 0
+                
+                for p, count in platform_counts.items():
+                    if p in social_platforms:
+                        social_count += count
+                    else:
+                        web_count += count
+                        
+                canal_counts = {
+                    "Réseaux Sociaux": social_count,
+                    "Presse en ligne": web_count
+                }
+
             return {
                 "total": total,
                 "canaux": canal_counts,

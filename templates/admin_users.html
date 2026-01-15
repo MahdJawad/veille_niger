@@ -227,11 +227,10 @@
                         </td>
                         <td>{{ u.created_at[:10] }}</td>
                         <td style="text-align: right;">
-                            <i class="fas fa-edit action-icon"
-                                onclick="openEditModal({{ u.id }}, '{{ u.username }}', '{{ u.role }}')"
-                                title="Éditer"></i>
+                            <i class="fas fa-edit action-icon js-edit-user" data-id="{{ u.id }}"
+                                data-username="{{ u.username }}" data-role="{{ u.role }}" title="Éditer"></i>
                             {% if u.id != user.id %}
-                            <i class="fas fa-trash action-icon delete" onclick="deleteUser({{ u.id }})"
+                            <i class="fas fa-trash action-icon delete js-delete-user" data-id="{{ u.id }}"
                                 title="Supprimer"></i>
                             {% endif %}
                         </td>
@@ -365,6 +364,23 @@
                 alert('Erreur réseau');
             }
         }
+
+        // Event delegation for table actions
+        document.querySelector('tbody').addEventListener('click', function (e) {
+            const editBtn = e.target.closest('.js-edit-user');
+            if (editBtn) {
+                const id = editBtn.dataset.id;
+                const username = editBtn.dataset.username;
+                const role = editBtn.dataset.role;
+                openEditModal(id, username, role);
+            }
+
+            const deleteBtn = e.target.closest('.js-delete-user');
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                deleteUser(id);
+            }
+        });
 
         window.onclick = function (event) {
             if (event.target == modal) {

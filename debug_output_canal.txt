@@ -1,0 +1,13 @@
+--- Database Data Quality Check ---
+Total Articles: 2460
+
+--- distribution 'canal' ---
+'None': 2460
+
+--- distribution 'media_type' ---
+'Article': 2342
+'Tweet': 118
+
+--- distribution 'platform' ---
+'Google News (Deep)': 2342
+'Twitter/X': 118
