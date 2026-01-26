@@ -33,7 +33,7 @@ GA_API_SECRET = os.getenv("GA_API_SECRET", "")
 
 # Scraper
 SCRAPER_HEADLESS = os.getenv("SCRAPER_HEADLESS", "true").lower() == "true"
-SCRAPER_TIMEOUT = int(os.getenv("SCRAPER_TIMEOUT", "60000"))
+SCRAPER_TIMEOUT = int(os.getenv("SCRAPER_TIMEOUT", "120000"))
 ARTICLE_TIMEOUT = int(os.getenv("ARTICLE_TIMEOUT", "45000"))
 MAX_ARTICLES_PER_KEYWORD = int(os.getenv("MAX_ARTICLES_PER_KEYWORD", "10"))
 

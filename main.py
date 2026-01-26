@@ -4,11 +4,13 @@ Version refactorisée avec SQLite, logging structuré, et google-auth
 """
 import datetime
 from fastapi import FastAPI, Request, BackgroundTasks, HTTPException, Depends, Response, Cookie
+import subprocess
+import sys
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import gspread
 from google.oauth2.service_account import Credentials
 from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
@@ -26,7 +28,9 @@ from config import (
 )
 from logger import setup_logger
 from database import db
+from database import db
 from keywords import MOTS_CLES_NIGER
+from theme_configs import get_all_themes
 import requests
 
 # Configuration
@@ -61,6 +65,11 @@ def get_current_user(request: Request):
         
     return user
 
+@app.get("/")
+async def root():
+    """Redirection racine vers dashboard"""
+    return RedirectResponse(url="/dashboard")
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Affiche la page de connexion"""
@@ -93,17 +102,37 @@ async def theme_selection_page(request: Request, user: dict = Depends(get_curren
     return templates.TemplateResponse("theme_selection.html", {
         "request": request, 
         "user": user,
-        "keywords": MOTS_CLES_NIGER
+        "themes": get_all_themes()
     })
 
+def launch_theme_scraper(theme: str):
+    """Lance un scraper dédié pour le thème en arrière-plan (subprocess)"""
+    try:
+        logger.info(f"🚀 Lancement sous-scraper pour le thème: {theme}")
+        # Lancer scraper.py --theme "Theme Name" dans un processus séparé
+        # On utilise sys.executable pour garantir qu'on utilise le même venv
+        subprocess.Popen(
+            [sys.executable, "scraper.py", "--theme", theme],
+            cwd=os.getcwd(),
+            # On laisse stdout/stderr gérés par le système ou redirigés si besoin de debug
+            # Pour la prod, on pourrait mettre subprocess.DEVNULL
+        )
+    except Exception as e:
+        logger.error(f"Erreur lancement sous-scraper: {e}")
+
 @app.post("/theme-selection")
-async def set_theme(request: Request, theme: str = Form(...), user: dict = Depends(get_current_user)):
-    """Enregistre le thème choisi dans un cookie"""
+async def set_theme(request: Request, background_tasks: BackgroundTasks, theme: List[str] = Form(...), user: dict = Depends(get_current_user)):
+    """Enregistre les thèmes choisis dans un cookie et lance les scrapers dédiés"""
     if not user:
         return RedirectResponse(url="/login")
+
+    # Lancer le scraper spécifique pour chaque thème en background
+    for t in theme:
+        background_tasks.add_task(launch_theme_scraper, t)
         
     response = RedirectResponse(url="/dashboard", status_code=303)
-    response.set_cookie(key="user_theme", value=theme, httponly=True)
+    # Stocker sous forme de liste séparée par des virgules
+    response.set_cookie(key="user_theme", value=",".join(theme), httponly=True)
     return response
 
 @app.get("/logout")

@@ -751,6 +751,9 @@
         </div>
     </header>
 
+    <!-- Data for JavaScript -->
+    <script type="application/json" id="stats-data">{{ stats | tojson }}</script>
+
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- User Context Bar -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center gap-4 mb-8">
@@ -842,6 +845,7 @@
                             <th class="author-cell">Auteur</th>
                             <th class="content-cell">Contenu</th>
                             <th style="width: 80px;">Priorité</th>
+                            <th style="width: 100px;">Date Pub.</th>
                             <th class="sentiment-cell">Tonalité</th>
                             <th class="actions-cell">Actions</th>
                         </tr>
@@ -863,6 +867,9 @@
                                     {{ article.priority or 'Faible' }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 text-xs font-medium text-slate-600">
+                                {{ (article.publication_date or 'N/A')[:10] }}
+                            </td>
                             <td class="px-6 py-4">
                                 {% set s = (article.sentiment or article.Tonalité or 'neutre')|lower %}
                                 <span
@@ -876,30 +883,31 @@
                                 <div class="flex items-center gap-2">
                                     {% if user.role == 'admin' %}
                                     <button
-                                        class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center shadow-sm"
-                                        data-id="{{ article.id or 0 }}"
-                                        onclick="editArticle(this.dataset.id, 'validated')" title="Valider"><i
-                                            class="fas fa-check text-xs"></i></button>
+                                        class="action-btn w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-action="edit" data-id="{{ article.id or 0 }}" data-status="validated"
+                                        title="Valider"><i
+                                            class="fas fa-check text-xs pointer-events-none"></i></button>
                                     <button
-                                        class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center justify-center shadow-sm"
-                                        data-id="{{ article.id or 0 }}"
-                                        onclick="validateArticle(this.dataset.id, 'rejected')" title="Rejeter"><i
-                                            class="fas fa-times text-xs"></i></button>
+                                        class="action-btn w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-action="validate" data-id="{{ article.id or 0 }}" data-status="rejected"
+                                        title="Rejeter"><i
+                                            class="fas fa-times text-xs pointer-events-none"></i></button>
                                     {% else %}
                                     <button
-                                        class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center shadow-sm"
-                                        data-id="{{ article.id or 0 }}"
-                                        onclick="editArticle(this.dataset.id, 'validated_request')" title="Soumettre"><i
-                                            class="fas fa-paper-plane text-xs"></i></button>
+                                        class="action-btn w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-action="edit" data-id="{{ article.id or 0 }}"
+                                        data-status="validated_request" title="Soumettre"><i
+                                            class="fas fa-paper-plane text-xs pointer-events-none"></i></button>
                                     <button
-                                        class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm"
-                                        data-id="{{ article.id or 0 }}" onclick="editArticle(this.dataset.id)"
-                                        title="Éditer"><i class="fas fa-edit text-xs"></i></button>
+                                        class="action-btn w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-action="edit" data-id="{{ article.id or 0 }}" title="Éditer"><i
+                                            class="fas fa-edit text-xs pointer-events-none"></i></button>
                                     {% endif %}
                                     <button
-                                        class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center shadow-sm"
-                                        onclick="window.open('{{ article.url or article.URL or '#' }}', '_blank')"
-                                        title="Lien"><i class="fas fa-external-link-alt text-xs"></i></button>
+                                        class="action-btn w-8 h-8 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-action="open-link" data-url="{{ article.url or article.URL or '#' }}"
+                                        title="Lien"><i
+                                            class="fas fa-external-link-alt text-xs pointer-events-none"></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -989,9 +997,10 @@
                                                 class="fas fa-edit text-[10px]"></i></button>
                                         {% endif %}
                                         <button
-                                            class="w-7 h-7 rounded bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center"
-                                            onclick="window.open('{{ article.url or article.URL or '#' }}', '_blank')"><i
-                                                class="fas fa-external-link-alt text-[10px]"></i></button>
+                                            class="action-btn w-7 h-7 rounded bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center"
+                                            data-action="open-link"
+                                            data-url="{{ article.url or article.URL or '#' }}"><i
+                                                class="fas fa-external-link-alt text-[10px] pointer-events-none"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -1042,9 +1051,9 @@
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-1">
                                     <button
-                                        class="w-7 h-7 rounded bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center shadow-sm"
-                                        onclick="window.open('{{ article.url or article.URL or '#' }}', '_blank')"><i
-                                            class="fas fa-external-link-alt text-[10px]"></i></button>
+                                        class="action-btn w-7 h-7 rounded bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition flex items-center justify-center shadow-sm"
+                                        data-action="open-link" data-url="{{ article.url or article.URL or '#' }}"><i
+                                            class="fas fa-external-link-alt text-[10px] pointer-events-none"></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -1057,594 +1066,612 @@
         {% endfor %}
     </div>
 
+    <!-- Modal d'édition - Refactored with Tailwind -->
+    <div id="editModal" class="fixed inset-0 z-[1000] hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
 
-    <!-- Modal d'édition -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Éditer l'article</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div
+                class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-200">
+                <!-- Niger Flag Accent Top -->
+                <div class="h-1.5 flex">
+                    <div class="flex-1 bg-niger-orange"></div>
+                    <div class="flex-1 bg-white"></div>
+
+                    <div class="flex-1 bg-niger-green"></div>
+                </div>
+
+                <div class="bg-white px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800" id="modal-title">Édition / Validation
+                            de l'Article</h2>
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-widest mt-1">Système
+                            de Certification Veille Niger</p>
+                    </div>
+                    <button onclick="closeModal()"
+                        class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form id="editForm" class="p-8 space-y-6">
+                    <input type="hidden" id="articleId">
+                    <input type="hidden" id="validationPendingStatus">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2 lg:col-span-2">
+                            <label
+                                class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Auteur</label>
+                            <input type="text" id="editAuteur" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-semibold">
+                        </div>
+
+                        <div class="space-y-2 lg:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Contenu
+                                de l'article</label>
+                            <textarea id="editContenu" required rows="4"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 leading-relaxed"></textarea>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Tonalité
+                                / Sentiment</label>
+                            <select id="editTonalite"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
+                                <option value="Positif">✅ Positif</option>
+                                <option value="Négatif">❌ Négatif</option>
+                                <option value="Neutre">⚪ Neutre</option>
+                                <option value="Mixte">🔷 Mixte</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Priorité
+                                Stratégique</label>
+                            <select id="editPriority"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
+                                <option value="Faible">Faible</option>
+                                <option value="Modéré" selected>Modéré</option>
+                                <option value="Urgent">⚠️ Urgent</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Initiales
+                                Veilleur(se)</label>
+                            <select id="editVeilleur"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                <option value="">Sélectionner...</option>
+                                <option value="ABK">ABK</option>
+                                <option value="ABO">ABO</option>
+                                <option value="ASM">ASM</option>
+                                <option value="BMS">BMS</option>
+                                <option value="MDB">MDB</option>
+                                <option value="MSD">MSD</option>
+                                <option value="NSG">NSG</option>
+                                <option value="NMH">NMH</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Canal
+                                de Diffusion</label>
+                            <select id="editCanal"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
+                                <option value="">Sélectionner...</option>
+                                <option value="Presse écrite">📰 Presse écrite</option>
+                                <option value="Radio">🎙️ Radio</option>
+                                <option value="Télévision">📺 Télévision</option>
+                                <option value="Presse en ligne">🌐 Presse en ligne</option>
+                                <option value="Réseaux Sociaux">📱 Réseaux Sociaux</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Source
+                                / Médium</label>
+                            <input type="text" id="editSourceMedia"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label
+                                class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Thématique</label>
+                            <select id="editTheme"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                <option value="">Sélectionner...</option>
+                                <option value="Agriculture">Agriculture</option>
+                                <option value="Culture">Culture</option>
+                                <option value="Diplomatie">Diplomatie</option>
+                                <option value="Économie">Économie</option>
+                                <option value="Éducation">Éducation</option>
+                                <option value="Environnement">Environnement</option>
+                                <option value="Gouvernance">Gouvernance</option>
+                                <option value="Numérique / TIC">Numérique / TIC</option>
+                                <option value="Politique">Politique</option>
+                                <option value="Santé">Santé</option>
+                                <option value="Sécurité">Sécurité</option>
+                                <option value="Sport">Sport</option>
+                                <option value="Société / Genre">Société / Genre</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Sous-thème
+                                (Préciser)</label>
+                            <input type="text" id="editSubTheme"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Portée
+                                / Audience</label>
+                            <select id="editAudience"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                <option value="">Sélectionner...</option>
+                                <option value="Faible (< 1 000)">Faible (&lt; 1 000)</option>
+                                <option value="Moyenne (1 000 – 10 000)">Moyenne (1 000 – 10 000)</option>
+                                <option value="Importante (10 000 – 50 000)">Importante (10 000 – 50 000)
+                                </option>
+                                <option value="Élevée (50 000 – 100 000)">Élevée (50 000 – 100 000)</option>
+                                <option value="Très élevée (> 100 000)">Très élevée (&gt; 100 000)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Action
+                                recommandée</label>
+                            <select id="editAction"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
+                                <option value="">Sélectionner...</option>
+                                <option value="Vérifier">Vérifier</option>
+                                <option value="Démentir">Démentir</option>
+                                <option value="Relayer">Relayer</option>
+                                <option value="Escalader (alerte)">Escalader (alerte)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2 lg:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Lien
+                                Source (URL)</label>
+                            <input type="url" id="editURL" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-indigo-600 underline text-sm">
+                        </div>
+
+                        <div class="space-y-2 lg:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Observation
+                                / Commentaire</label>
+                            <textarea id="editObservation" rows="2"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-600 italic"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-100 flex flex-wrap gap-4">
+                        <button type="submit" id="saveOnlyBtn"
+                            class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-2xl font-bold transition-all shadow-sm">
+                            Sauvegarder
+                        </button>
+                        <button type="button" id="saveAndValidateBtn"
+                            class="flex-1 px-6 py-4 bg-niger-orange text-white hover:bg-orange-700 rounded-2xl font-bold transition-all shadow-lg shadow-orange-900/20">
+                            Sauvegarder et Valider
+                        </button>
+                    </div>
+                </form>
             </div>
-            <form id="editForm">
-                <h3>Édition / Validation de l'Article</h3>
-                <input type="hidden" id="articleId">
-                <input type="hidden" id="validationPendingStatus">
-                <!-- Stocke le statut cible (validated ou validated_request) -->
+        </div>
+    </div>
 
-                <!-- Modal d'édition - Refactored with Tailwind -->
-                <div id="editModal" class="fixed inset-0 z-[1000] hidden overflow-y-auto" aria-labelledby="modal-title"
-                    role="dialog" aria-modal="true">
-                    <div
-                        class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                        <!-- Overlay -->
-                        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-                            onclick="closeModal()"></div>
+    <!-- Notification system -->
+    <div id="notification"
+        class="fixed bottom-8 right-8 z-[2000] max-w-sm w-full transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-4">
+            <div id="notification-icon"
+                class="w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div id="notification-text" class="text-sm font-medium"></div>
+        </div>
+    </div>
 
-                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
-                            aria-hidden="true">&#8203;</span>
+    <script>
+        // Informations du membre connecté (depuis le template Jinja)
+        const currentUser = {
+            username: "{{ user.username }}",
+            role: "{{ user.role }}",
+            theme: "{{ user_theme or '' }}",
+            // Extraire les initiales depuis le username (ex: "john_doe" -> "JD")
+            initials: "{{ user.username }}".split('_').map(part => part[0].toUpperCase()).join('').substring(0, 3)
+        };
 
-                        <div
-                            class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-200">
-                            <!-- Niger Flag Accent Top -->
-                            <div class="h-1.5 flex">
-                                <div class="flex-1 bg-niger-orange"></div>
-                                <div class="flex-1 bg-white"></div>
-                                <div class="flex-1 bg-niger-green"></div>
-                            </div>
+        async function editArticle(id, targetStatus = null) {
+            try {
+                const response = await fetch(`/api/article/${id}`);
+                const article = await response.json();
 
-                            <div class="bg-white px-8 py-6 border-b border-slate-100 flex justify-between items-center">
-                                <div>
-                                    <h2 class="text-xl font-bold text-slate-800" id="modal-title">Édition / Validation
-                                        de l'Article</h2>
-                                    <p class="text-slate-400 text-xs font-medium uppercase tracking-widest mt-1">Système
-                                        de Certification Veille Niger</p>
-                                </div>
-                                <button onclick="closeModal()"
-                                    class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition flex items-center justify-center">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
+                if (article.error) {
+                    showNotification(article.error, 'error');
+                    return;
+                }
 
-                            <form id="editForm" class="p-8 space-y-6">
-                                <input type="hidden" id="articleId">
-                                <input type="hidden" id="validationPendingStatus">
+                document.getElementById('articleId').value = id;
+                document.getElementById('validationPendingStatus').value = targetStatus || '';
+                document.getElementById('editAuteur').value = article.author || '';
+                document.getElementById('editContenu').value = article.content || '';
+                document.getElementById('editTonalite').value = article.sentiment || 'Neutre';
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="space-y-2 lg:col-span-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Auteur</label>
-                                        <input type="text" id="editAuteur" required
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-semibold">
-                                    </div>
+                // AUTO-FILL: Initiales du veilleur (utiliser les initiales du membre si vide)
+                document.getElementById('editVeilleur').value = article.veilleur_initials || currentUser.initials;
 
-                                    <div class="space-y-2 lg:col-span-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Contenu
-                                            de l'article</label>
-                                        <textarea id="editContenu" required rows="4"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 leading-relaxed"></textarea>
-                                    </div>
+                document.getElementById('editCanal').value = article.canal || '';
+                document.getElementById('editSourceMedia').value = article.source_media || '';
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Tonalité
-                                            / Sentiment</label>
-                                        <select id="editTonalite"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
-                                            <option value="Positif">✅ Positif</option>
-                                            <option value="Négatif">❌ Négatif</option>
-                                            <option value="Neutre">⚪ Neutre</option>
-                                            <option value="Mixte">🔷 Mixte</option>
-                                        </select>
-                                    </div>
+                // AUTO-FILL: Thème (utiliser le thème du membre si vide et si membre)
+                if (currentUser.role === 'member' && currentUser.theme && !article.assigned_theme) {
+                    document.getElementById('editTheme').value = currentUser.theme;
+                } else {
+                    document.getElementById('editTheme').value = article.assigned_theme || '';
+                }
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Priorité
-                                            Stratégique</label>
-                                        <select id="editPriority"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
-                                            <option value="Faible">Faible</option>
-                                            <option value="Modéré" selected>Modéré</option>
-                                            <option value="Urgent">⚠️ Urgent</option>
-                                        </select>
-                                    </div>
+                document.getElementById('editSubTheme').value = article.sub_theme || '';
+                document.getElementById('editAudience').value = article.audience || '';
+                document.getElementById('editAction').value = article.recommended_action || '';
+                document.getElementById('editPriority').value = article.priority || 'Modéré';
+                document.getElementById('editObservation').value = article.observation || '';
+                document.getElementById('editURL').value = article.url || '';
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Initiales
-                                            Veilleur(se)</label>
-                                        <select id="editVeilleur"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
-                                            <option value="">Sélectionner...</option>
-                                            <option value="ABK">ABK</option>
-                                            <option value="ABO">ABO</option>
-                                            <option value="ASM">ASM</option>
-                                            <option value="BMS">BMS</option>
-                                            <option value="MDB">MDB</option>
-                                            <option value="MSD">MSD</option>
-                                            <option value="NSG">NSG</option>
-                                            <option value="NMH">NMH</option>
-                                        </select>
-                                    </div>
+                // Ajuster le bouton principal selon le contexte
+                const validateBtn = document.getElementById('saveAndValidateBtn');
+                if (targetStatus) {
+                    validateBtn.classList.remove('hidden');
+                    validateBtn.textContent = (targetStatus === 'validated') ? 'Sauvegarder et Valider' : 'Sauvegarder et Soumettre';
+                } else {
+                    validateBtn.classList.add('hidden');
+                }
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Canal
-                                            de Diffusion</label>
-                                        <select id="editCanal"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700 font-bold">
-                                            <option value="">Sélectionner...</option>
-                                            <option value="Presse écrite">📰 Presse écrite</option>
-                                            <option value="Radio">🎙️ Radio</option>
-                                            <option value="Télévision">📺 Télévision</option>
-                                            <option value="Presse en ligne">🌐 Presse en ligne</option>
-                                            <option value="Réseaux Sociaux">📱 Réseaux Sociaux</option>
-                                        </select>
-                                    </div>
+                // Afficher le modal avec Tailwind
+                document.getElementById('editModal').classList.remove('hidden');
+            } catch (error) {
+                showNotification('Erreur chargement article', 'error');
+            }
+        }
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Source
-                                            / Médium</label>
-                                        <input type="text" id="editSourceMedia"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
-                                    </div>
+        function closeModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Thématique</label>
-                                        <select id="editTheme"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
-                                            <option value="">Sélectionner...</option>
-                                            <option value="Agriculture">Agriculture</option>
-                                            <option value="Culture">Culture</option>
-                                            <option value="Diplomatie">Diplomatie</option>
-                                            <option value="Économie">Économie</option>
-                                            <option value="Éducation">Éducation</option>
-                                            <option value="Environnement">Environnement</option>
-                                            <option value="Gouvernance">Gouvernance</option>
-                                            <option value="Numérique / TIC">Numérique / TIC</option>
-                                            <option value="Politique">Politique</option>
-                                            <option value="Santé">Santé</option>
-                                            <option value="Sécurité">Sécurité</option>
-                                            <option value="Sport">Sport</option>
-                                            <option value="Société / Genre">Société / Genre</option>
-                                        </select>
-                                    </div>
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('notification');
+            const text = document.getElementById('notification-text');
+            const icon = document.getElementById('notification-icon');
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Sous-thème
-                                            (Préciser)</label>
-                                        <input type="text" id="editSubTheme"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
-                                    </div>
+            text.textContent = message;
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Portée
-                                            / Audience</label>
-                                        <select id="editAudience"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
-                                            <option value="">Sélectionner...</option>
-                                            <option value="Faible (< 1 000)">Faible (&lt; 1 000)</option>
-                                            <option value="Moyenne (1 000 – 10 000)">Moyenne (1 000 – 10 000)</option>
-                                            <option value="Importante (10 000 – 50 000)">Importante (10 000 – 50 000)
-                                            </option>
-                                            <option value="Élevée (50 000 – 100 000)">Élevée (50 000 – 100 000)</option>
-                                            <option value="Très élevée (> 100 000)">Très élevée (&gt; 100 000)</option>
-                                        </select>
-                                    </div>
+            // Ajuster l'icône et la couleur selon le type
+            if (type === 'error') {
+                icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-rose-500 text-white';
+                icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+            } else if (type === 'success') {
+                icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white';
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+            } else {
+                icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white';
+                icon.innerHTML = '<i class="fas fa-info-circle"></i>';
+            }
 
-                                    <div class="space-y-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Action
-                                            recommandée</label>
-                                        <select id="editAction"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-700">
-                                            <option value="">Sélectionner...</option>
-                                            <option value="Vérifier">Vérifier</option>
-                                            <option value="Démentir">Démentir</option>
-                                            <option value="Relayer">Relayer</option>
-                                            <option value="Escalader (alerte)">Escalader (alerte)</option>
-                                        </select>
-                                    </div>
+            // Animation d'entrée
+            notif.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
 
-                                    <div class="space-y-2 lg:col-span-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Lien
-                                            Source (URL)</label>
-                                        <input type="url" id="editURL" required
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-indigo-600 underline text-sm">
-                                    </div>
+            setTimeout(() => {
+                // Animation de sortie
+                notif.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
 
-                                    <div class="space-y-2 lg:col-span-2">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Observation
-                                            / Commentaire</label>
-                                        <textarea id="editObservation" rows="2"
-                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition outline-none text-slate-600 italic"></textarea>
-                                    </div>
-                                </div>
+        // Gestionnaire de soumission
+        async function submitArticleForm(shouldValidate = false) {
+            const id = document.getElementById('articleId').value;
+            const targetStatus = document.getElementById('validationPendingStatus').value;
 
-                                <div class="pt-6 border-t border-slate-100 flex flex-wrap gap-4">
-                                    <button type="submit" id="saveOnlyBtn"
-                                        class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-2xl font-bold transition-all shadow-sm">
-                                        Sauvegarder
-                                    </button>
-                                    <button type="button" id="saveAndValidateBtn"
-                                        class="flex-1 px-6 py-4 bg-niger-orange text-white hover:bg-orange-700 rounded-2xl font-bold transition-all shadow-lg shadow-orange-900/20">
-                                        Sauvegarder et Valider
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+            const data = {
+                author: document.getElementById('editAuteur').value,
+                content: document.getElementById('editContenu').value,
+                sentiment: document.getElementById('editTonalite').value,
+                url: document.getElementById('editURL').value,
+                veilleur_initials: document.getElementById('editVeilleur').value,
+                canal: document.getElementById('editCanal').value,
+                source_media: document.getElementById('editSourceMedia').value,
+                assigned_theme: document.getElementById('editTheme').value,
+                sub_theme: document.getElementById('editSubTheme').value,
+                audience: document.getElementById('editAudience').value,
+                recommended_action: document.getElementById('editAction').value,
+                priority: document.getElementById('editPriority').value,
+                observation: document.getElementById('editObservation').value
+            };
 
-                <!-- Notification system -->
-                <div id="notification"
-                    class="fixed bottom-8 right-8 z-[2000] max-w-sm w-full transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-                    <div
-                        class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-4">
-                        <div id="notification-icon"
-                            class="w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                        <div id="notification-text" class="text-sm font-medium"></div>
-                    </div>
-                </div>
+            try {
+                // 1. Mise à jour des informations (PUT)
+                const updateRes = await fetch(`/api/article/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const updateResult = await updateRes.json();
 
-                <script>
-                    // Informations du membre connecté (depuis le template Jinja)
-                    const currentUser = {
-                        username: "{{ user.username }}",
-                        role: "{{ user.role }}",
-                        theme: "{{ user_theme or '' }}",
-                        // Extraire les initiales depuis le username (ex: "john_doe" -> "JD")
-                        initials: "{{ user.username }}".split('_').map(part => part[0].toUpperCase()).join('').substring(0, 3)
-                    };
+                if (!updateResult.success) {
+                    showNotification('Erreur lors de la mise à jour', 'error');
+                    return;
+                }
 
-                    async function editArticle(id, targetStatus = null) {
-                        try {
-                            const response = await fetch(`/api/article/${id}`);
-                            const article = await response.json();
-
-                            if (article.error) {
-                                showNotification(article.error, 'error');
-                                return;
-                            }
-
-                            document.getElementById('articleId').value = id;
-                            document.getElementById('validationPendingStatus').value = targetStatus || '';
-                            document.getElementById('editAuteur').value = article.author || '';
-                            document.getElementById('editContenu').value = article.content || '';
-                            document.getElementById('editTonalite').value = article.sentiment || 'Neutre';
-
-                            // AUTO-FILL: Initiales du veilleur (utiliser les initiales du membre si vide)
-                            document.getElementById('editVeilleur').value = article.veilleur_initials || currentUser.initials;
-
-                            document.getElementById('editCanal').value = article.canal || '';
-                            document.getElementById('editSourceMedia').value = article.source_media || '';
-
-                            // AUTO-FILL: Thème (utiliser le thème du membre si vide et si membre)
-                            if (currentUser.role === 'member' && currentUser.theme && !article.assigned_theme) {
-                                document.getElementById('editTheme').value = currentUser.theme;
-                            } else {
-                                document.getElementById('editTheme').value = article.assigned_theme || '';
-                            }
-
-                            document.getElementById('editSubTheme').value = article.sub_theme || '';
-                            document.getElementById('editAudience').value = article.audience || '';
-                            document.getElementById('editAction').value = article.recommended_action || '';
-                            document.getElementById('editPriority').value = article.priority || 'Modéré';
-                            document.getElementById('editObservation').value = article.observation || '';
-                            document.getElementById('editURL').value = article.url || '';
-
-                            // Ajuster le bouton principal selon le contexte
-                            const validateBtn = document.getElementById('saveAndValidateBtn');
-                            if (targetStatus) {
-                                validateBtn.classList.remove('hidden');
-                                validateBtn.textContent = (targetStatus === 'validated') ? 'Sauvegarder et Valider' : 'Sauvegarder et Soumettre';
-                            } else {
-                                validateBtn.classList.add('hidden');
-                            }
-
-                            // Afficher le modal avec Tailwind
-                            document.getElementById('editModal').classList.remove('hidden');
-                        } catch (error) {
-                            showNotification('Erreur chargement article', 'error');
-                        }
+                // 2. Validation si demandée (POST)
+                if (shouldValidate && targetStatus) {
+                    const formData = new FormData();
+                    formData.append('status', targetStatus);
+                    const valRes = await fetch(`/api/article/${id}/validate`, { method: 'POST', body: formData });
+                    if (!valRes.ok) {
+                        showNotification('Article mis à jour mais erreur de validation', 'warning');
+                        return;
                     }
+                }
 
-                    function closeModal() {
-                        document.getElementById('editModal').classList.add('hidden');
+                showNotification('Opération réussie', 'success');
+                closeModal();
+                setTimeout(() => location.reload(), 1000);
+            } catch (error) {
+                showNotification('Erreur réseau', 'error');
+            }
+        }
+
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitArticleForm(false);
+        });
+
+        document.getElementById('saveAndValidateBtn').addEventListener('click', () => {
+            submitArticleForm(true);
+        });
+
+        async function validateArticle(id, status) {
+            try {
+                const formData = new FormData();
+                formData.append('status', status);
+                const response = await fetch(`/api/article/${id}/validate`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Opération réussie', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showNotification('Erreur de validation', 'error');
+                }
+            } catch (error) {
+                showNotification('Erreur réseau', 'error');
+            }
+        }
+
+        // Event delegation pour tous les boutons d'action
+        document.addEventListener('click', function (e) {
+            // Chercher le bouton, même si on clique sur l'icône
+            const btn = e.target.closest('.action-btn');
+
+            console.log('Click detected:', e.target, 'Button found:', btn);
+
+            if (!btn) return;
+
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            const status = btn.dataset.status;
+            const url = btn.dataset.url;
+
+            console.log('Action:', action, 'ID:', id, 'Status:', status);
+
+            if (action === 'edit') {
+                editArticle(id, status);
+            } else if (action === 'validate') {
+                validateArticle(id, status);
+            } else if (action === 'open-link') {
+                window.open(url, '_blank');
+            }
+        });
+
+        async function syncToSheets() {
+            const btn = document.querySelector('.sync-button');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Synchronisation...';
+            }
+            try {
+                const response = await fetch('/api/sync-to-sheets', { method: 'POST' });
+                const result = await response.json();
+                showNotification(result.message || result.error, result.success ? 'success' : 'error');
+            } catch (error) {
+                showNotification('Erreur réseau', 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Synchroniser Sheets';
+                }
+            }
+        }
+
+        let evolutionChart = null;
+
+        async function updateChart(period, btn) {
+            document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            // Déterminer la limite intelligente selon la période
+            let limit = 7; // Default for 'day' and 'week' (7 days)
+            if (period === 'month') limit = 12;
+            else if (period === 'year') limit = 5;
+            // 'day' and 'week' will now both use the default limit of 7.
+
+            try {
+                const response = await fetch(`/api/stats/trends?period=${period}&limit=${limit}`);
+                const rawData = await response.json();
+
+                // Transformation des données : [ {time_label, sentiment, count}, ... ] 
+                // vers { labels: [], pos: [], neg: [] }
+                const grouped = {};
+                rawData.forEach(item => {
+                    const label = item.time_label;
+                    if (!grouped[label]) {
+                        grouped[label] = { pos: 0, neg: 0, neut: 0 };
                     }
+                    const sent = (item.sentiment || '').toLowerCase();
+                    if (sent.includes('positif')) grouped[label].pos += item.count;
+                    else if (sent.includes('négatif') || sent.includes('negatif')) grouped[label].neg += item.count;
+                    else grouped[label].neut += item.count;
+                });
 
-                    function showNotification(message, type = 'info') {
-                        const notif = document.getElementById('notification');
-                        const text = document.getElementById('notification-text');
-                        const icon = document.getElementById('notification-icon');
+                const labels = Object.keys(grouped).sort();
+                const dataPos = labels.map(l => grouped[l].pos);
+                const dataNeg = labels.map(l => grouped[l].neg);
 
-                        text.textContent = message;
+                if (evolutionChart) {
+                    evolutionChart.data.labels = labels;
+                    evolutionChart.data.datasets[0].data = dataPos;
+                    evolutionChart.data.datasets[1].data = dataNeg;
+                    evolutionChart.update();
+                }
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du graphique:', error);
+            }
+        }
 
-                        // Ajuster l'icône et la couleur selon le type
-                        if (type === 'error') {
-                            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-rose-500 text-white';
-                            icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                        } else if (type === 'success') {
-                            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white';
-                            icon.innerHTML = '<i class="fas fa-check"></i>';
-                        } else {
-                            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white';
-                            icon.innerHTML = '<i class="fas fa-info-circle"></i>';
-                        }
+        // Initialisation des graphiques avec thématique Niger
+        const rawStats = JSON.parse(document.getElementById('stats-data').textContent);
 
-                        // Animation d'entrée
-                        notif.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-
-                        setTimeout(() => {
-                            // Animation de sortie
-                            notif.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-                        }, 3000);
-                    }
-
-                    // Gestionnaire de soumission
-                    async function submitArticleForm(shouldValidate = false) {
-                        const id = document.getElementById('articleId').value;
-                        const targetStatus = document.getElementById('validationPendingStatus').value;
-
-                        const data = {
-                            author: document.getElementById('editAuteur').value,
-                            content: document.getElementById('editContenu').value,
-                            sentiment: document.getElementById('editTonalite').value,
-                            url: document.getElementById('editURL').value,
-                            veilleur_initials: document.getElementById('editVeilleur').value,
-                            canal: document.getElementById('editCanal').value,
-                            source_media: document.getElementById('editSourceMedia').value,
-                            assigned_theme: document.getElementById('editTheme').value,
-                            sub_theme: document.getElementById('editSubTheme').value,
-                            audience: document.getElementById('editAudience').value,
-                            recommended_action: document.getElementById('editAction').value,
-                            priority: document.getElementById('editPriority').value,
-                            observation: document.getElementById('editObservation').value
-                        };
-
-                        try {
-                            // 1. Mise à jour des informations (PUT)
-                            const updateRes = await fetch(`/api/article/${id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(data)
-                            });
-                            const updateResult = await updateRes.json();
-
-                            if (!updateResult.success) {
-                                showNotification('Erreur lors de la mise à jour', 'error');
-                                return;
-                            }
-
-                            // 2. Validation si demandée (POST)
-                            if (shouldValidate && targetStatus) {
-                                const formData = new FormData();
-                                formData.append('status', targetStatus);
-                                const valRes = await fetch(`/api/article/${id}/validate`, { method: 'POST', body: formData });
-                                if (!valRes.ok) {
-                                    showNotification('Article mis à jour mais erreur de validation', 'warning');
-                                    return;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chart 1: Répartition Sentiment (Doughnut)
+            const ctxPie = document.getElementById('sentimentChart');
+            if (ctxPie) {
+                new Chart(ctxPie.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Positif', 'Négatif', 'Neutre'],
+                        datasets: [{
+                            data: [rawStats.positif, rawStats.negatif, rawStats.neutre],
+                            backgroundColor: ['#009A44', '#E05206', '#CBD5E1'],
+                            borderWidth: 0,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    font: { family: 'Outfit', size: 12, weight: 'bold' }
                                 }
                             }
-
-                            showNotification('Opération réussie', 'success');
-                            closeModal();
-                            setTimeout(() => location.reload(), 1000);
-                        } catch (error) {
-                            showNotification('Erreur réseau', 'error');
                         }
                     }
+                });
+            }
 
-                    document.getElementById('editForm').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        submitArticleForm(false);
-                    });
-
-                    document.getElementById('saveAndValidateBtn').addEventListener('click', () => {
-                        submitArticleForm(true);
-                    });
-
-                    async function syncToSheets() {
-                        const btn = document.querySelector('.sync-button');
-                        if (btn) {
-                            btn.disabled = true;
-                            btn.textContent = 'Synchronisation...';
-                        }
-                        try {
-                            const response = await fetch('/api/sync-to-sheets', { method: 'POST' });
-                            const result = await response.json();
-                            showNotification(result.message || result.error, result.success ? 'success' : 'error');
-                        } catch (error) {
-                            showNotification('Erreur réseau', 'error');
-                        } finally {
-                            if (btn) {
-                                btn.disabled = false;
-                                btn.textContent = 'Synchroniser Sheets';
+            // Chart 2: Evolution (Line)
+            const ctxEvo = document.getElementById('evolutionChart');
+            if (ctxEvo) {
+                evolutionChart = new Chart(ctxEvo.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Positif',
+                                borderColor: '#009A44',
+                                backgroundColor: 'rgba(0, 154, 68, 0.1)',
+                                data: [],
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#009A44'
+                            },
+                            {
+                                label: 'Négatif',
+                                borderColor: '#E05206',
+                                backgroundColor: 'rgba(224, 82, 6, 0.1)',
+                                data: [],
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#E05206'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                padding: 12,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                cornerRadius: 12
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0,0,0,0.03)' },
+                                ticks: { stepSize: 1, font: { family: 'Outfit' } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { family: 'Outfit' } }
                             }
                         }
                     }
+                });
+                updateChart('day');
+            }
+        });
 
-                    let evolutionChart = null;
+        // Fonction de validation globale
+        async function validateArticle(id, status) {
+            if (!id || id === '0') {
+                showNotification('ID d\'article invalide', 'error');
+                return;
+            }
+            if (!confirm('Confirmer le changement de statut ?')) return;
+            const formData = new FormData();
+            formData.append('status', status);
+            try {
+                const res = await fetch(`/api/article/${id}/validate`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    showNotification('Statut mis à jour', 'success');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showNotification('Erreur lors de la validation', 'error');
+                }
+            } catch (e) {
+                showNotification('Erreur réseau', 'error');
+            }
+        }
 
-                    async function updateChart(period, btn) {
-                        document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
-                        if (btn) btn.classList.add('active');
-
-                        // Déterminer la limite intelligente selon la période
-                        let limit = 7; // Default for 'day' and 'week' (7 days)
-                        if (period === 'month') limit = 12;
-                        else if (period === 'year') limit = 5;
-                        // 'day' and 'week' will now both use the default limit of 7.
-
-                        try {
-                            const response = await fetch(`/api/stats/trends?period=${period}&limit=${limit}`);
-                            const rawData = await response.json();
-
-                            // Transformation des données : [ {time_label, sentiment, count}, ... ] 
-                            // vers { labels: [], pos: [], neg: [] }
-                            const grouped = {};
-                            rawData.forEach(item => {
-                                const label = item.time_label;
-                                if (!grouped[label]) {
-                                    grouped[label] = { pos: 0, neg: 0, neut: 0 };
-                                }
-                                const sent = (item.sentiment || '').toLowerCase();
-                                if (sent.includes('positif')) grouped[label].pos += item.count;
-                                else if (sent.includes('négatif') || sent.includes('negatif')) grouped[label].neg += item.count;
-                                else grouped[label].neut += item.count;
-                            });
-
-                            const labels = Object.keys(grouped).sort();
-                            const dataPos = labels.map(l => grouped[l].pos);
-                            const dataNeg = labels.map(l => grouped[l].neg);
-
-                            if (evolutionChart) {
-                                evolutionChart.data.labels = labels;
-                                evolutionChart.data.datasets[0].data = dataPos;
-                                evolutionChart.data.datasets[1].data = dataNeg;
-                                evolutionChart.update();
-                            }
-                        } catch (error) {
-                            console.error('Erreur lors de la mise à jour du graphique:', error);
-                        }
-                    }
-
-                    // Initialisation des graphiques avec thématique Niger
-                    const rawStats = {{ stats | tojson | safe }};
-
-                    document.addEventListener('DOMContentLoaded', () => {
-                        // Chart 1: Répartition Sentiment (Doughnut)
-                        const ctxPie = document.getElementById('sentimentChart');
-                        if (ctxPie) {
-                            new Chart(ctxPie.getContext('2d'), {
-                                type: 'doughnut',
-                                data: {
-                                    labels: ['Positif', 'Négatif', 'Neutre'],
-                                    datasets: [{
-                                        data: [rawStats.positif, rawStats.negatif, rawStats.neutre],
-                                        backgroundColor: ['#009A44', '#E05206', '#CBD5E1'],
-                                        borderWidth: 0,
-                                        hoverOffset: 15
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    cutout: '75%',
-                                    plugins: {
-                                        legend: {
-                                            position: 'bottom',
-                                            labels: {
-                                                usePointStyle: true,
-                                                padding: 20,
-                                                font: { family: 'Outfit', size: 12, weight: 'bold' }
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        }
-
-                        // Chart 2: Evolution (Line)
-                        const ctxEvo = document.getElementById('evolutionChart');
-                        if (ctxEvo) {
-                            evolutionChart = new Chart(ctxEvo.getContext('2d'), {
-                                type: 'line',
-                                data: {
-                                    labels: [],
-                                    datasets: [
-                                        {
-                                            label: 'Positif',
-                                            borderColor: '#009A44',
-                                            backgroundColor: 'rgba(0, 154, 68, 0.1)',
-                                            data: [],
-                                            fill: true,
-                                            tension: 0.4,
-                                            borderWidth: 3,
-                                            pointBackgroundColor: '#009A44'
-                                        },
-                                        {
-                                            label: 'Négatif',
-                                            borderColor: '#E05206',
-                                            backgroundColor: 'rgba(224, 82, 6, 0.1)',
-                                            data: [],
-                                            fill: true,
-                                            tension: 0.4,
-                                            borderWidth: 3,
-                                            pointBackgroundColor: '#E05206'
-                                        }
-                                    ]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {
-                                            display: false
-                                        },
-                                        tooltip: {
-                                            backgroundColor: '#1e293b',
-                                            padding: 12,
-                                            titleFont: { size: 14, weight: 'bold' },
-                                            bodyFont: { size: 13 },
-                                            cornerRadius: 12
-                                        }
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            grid: { color: 'rgba(0,0,0,0.03)' },
-                                            ticks: { stepSize: 1, font: { family: 'Outfit' } }
-                                        },
-                                        x: {
-                                            grid: { display: false },
-                                            ticks: { font: { family: 'Outfit' } }
-                                        }
-                                    }
-                                }
-                            });
-                            updateChart('day');
-                        }
-                    });
-
-                    // Fonction de validation globale
-                    async function validateArticle(id, status) {
-                        if (!id || id === '0') {
-                            showNotification('ID d\'article invalide', 'error');
-                            return;
-                        }
-                        if (!confirm('Confirmer le changement de statut ?')) return;
-                        const formData = new FormData();
-                        formData.append('status', status);
-                        try {
-                            const res = await fetch(`/api/article/${id}/validate`, { method: 'POST', body: formData });
-                            if (res.ok) {
-                                showNotification('Statut mis à jour', 'success');
-                                setTimeout(() => window.location.reload(), 800);
-                            } else {
-                                showNotification('Erreur lors de la validation', 'error');
-                            }
-                        } catch (e) {
-                            showNotification('Erreur réseau', 'error');
-                        }
-                    }
-
-                    window.onclick = (event) => {
-                        const modal = document.getElementById('editModal');
-                        if (event.target === modal) {
-                            closeModal();
-                        }
-                    };
-                </script>
+        window.onclick = (event) => {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+    </script>
 </body>
 
 </html>

@@ -82,16 +82,44 @@
         <h1>Bonjour, {{ user.username }}</h1>
         <p>Veuillez sélectionner la thématique sur laquelle vous allez travailler aujourd'hui.</p>
 
-        <form action="/theme-selection" method="POST">
-            <select name="theme" required>
-                <option value="" disabled selected>Choisir une thématique...</option>
-                <!-- Liste des thématiques définies dans keywords.py -->
-                {% for keyword in keywords %}
-                <option value="{{ keyword }}">{{ keyword }}</option>
+        <form action="/theme-selection" method="POST" id="themeForm">
+            <div style="text-align: left; margin-bottom: 20px; max-height: 300px; overflow-y: auto;">
+                {% for theme in themes %}
+                <div
+                    style="margin-bottom: 10px; display: flex; align-items: center; padding: 10px; border: 1px solid #eee; border-radius: 8px;">
+                    <input type="checkbox" name="theme" value="{{ theme }}" id="theme_{{ loop.index }}"
+                        class="theme-checkbox" style="width: 20px; height: 20px; margin-right: 15px;">
+                    <label for="theme_{{ loop.index }}" style="cursor: pointer; flex-grow: 1; font-weight: 500;">{{
+                        theme }}</label>
+                </div>
                 {% endfor %}
-            </select>
+            </div>
+            <p style="font-size: 0.9em; margin-bottom: 20px; color: #888;">Sélectionnez jusqu'à 2 thématiques.</p>
             <button type="submit">Commencer la Veille</button>
         </form>
+
+        <script>
+            const checkboxes = document.querySelectorAll('.theme-checkbox');
+            const maxAllowed = 2;
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const checked = document.querySelectorAll('.theme-checkbox:checked');
+                    if (checked.length > maxAllowed) {
+                        this.checked = false;
+                        alert('Vous ne pouvez sélectionner que ' + maxAllowed + ' thématiques maximum.');
+                    }
+                });
+            });
+
+            document.getElementById('themeForm').addEventListener('submit', function (e) {
+                const checked = document.querySelectorAll('.theme-checkbox:checked');
+                if (checked.length === 0) {
+                    e.preventDefault();
+                    alert('Veuillez sélectionner au moins une thématique.');
+                }
+            });
+        </script>
     </div>
 </body>
 

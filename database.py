@@ -63,6 +63,8 @@ class Database:
                     recommended_action TEXT,
                     priority TEXT DEFAULT 'Modéré',
                     observation TEXT,
+                    assigned_theme TEXT,
+                    comments_count INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -137,6 +139,15 @@ class Database:
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
+            
+            # 1. Vérifier si l'article existe déjà (Dédoublonnage par URL)
+            if url:
+                cursor.execute('SELECT id FROM articles WHERE url = ?', (url,))
+                existing = cursor.fetchone()
+                if existing:
+                    logger.debug(f"Article ignoré (doublon URL): {url}")
+                    return existing['id']
+
             cursor.execute('''
                 INSERT INTO articles (
                     date, platform, author, content, media_type, sentiment, url,
