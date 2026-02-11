@@ -3,7 +3,9 @@ Système de Veille Niger - API FastAPI
 Version refactorisée avec SQLite, logging structuré, et google-auth
 """
 import datetime
-from fastapi import FastAPI, Request, BackgroundTasks, HTTPException, Depends, Response, Cookie
+import asyncio
+import time
+from fastapi import FastAPI, Request, BackgroundTasks, HTTPException, Depends, Response, Cookie, Form
 import subprocess
 import sys
 from fastapi.templating import Jinja2Templates
@@ -28,10 +30,13 @@ from config import (
 )
 from logger import setup_logger
 from database import db
-from database import db
 from keywords import MOTS_CLES_NIGER
 from theme_configs import get_all_themes
 import requests
+
+# Cooldown pour éviter le spam de scraping (en secondes)
+THEME_SCRAPE_COOLDOWN = 300 
+LAST_THEME_SCRAPES = {}  # Réinitialisé - les membres peuvent scraper immédiatement
 
 # Configuration
 logger = setup_logger(__name__)
@@ -127,8 +132,15 @@ async def set_theme(request: Request, background_tasks: BackgroundTasks, theme: 
         return RedirectResponse(url="/login")
 
     # Lancer le scraper spécifique pour chaque thème en background
+    current_time = time.time()
     for t in theme:
-        background_tasks.add_task(launch_theme_scraper, t)
+        last_run = LAST_THEME_SCRAPES.get(t, 0)
+        if current_time - last_run > THEME_SCRAPE_COOLDOWN:
+            logger.info(f"✅ Lancement scraper pour {t} (Dernier: {int(current_time - last_run)}s)")
+            background_tasks.add_task(launch_theme_scraper, t)
+            LAST_THEME_SCRAPES[t] = current_time
+        else:
+            logger.info(f"⏭️ Scraper ignoré pour {t} (Cooldown: {int(THEME_SCRAPE_COOLDOWN - (current_time - last_run))}s restant)")
         
     response = RedirectResponse(url="/dashboard", status_code=303)
     # Stocker sous forme de liste séparée par des virgules

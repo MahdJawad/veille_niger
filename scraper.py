@@ -89,7 +89,7 @@ async def scrape_platform():
                 
                 try:
                     await page.goto(
-                        f"https://www.google.com/search?q={keyword}&tbm=nws&tbs=qdr:d2",
+                        f"https://www.google.com/search?q={keyword}&tbm=nws&tbs=qdr:w2",
                         timeout=SCRAPER_TIMEOUT
                     )
                 except Exception as e:
@@ -137,6 +137,13 @@ async def scrape_platform():
                        "title": "h3", 
                        "source": "div.NUnG9d span",
                        "time": "div.OSrXXb span"
+                    },
+                    {
+                        "container": "div.g, div[role='article']",
+                        "title": "h3",
+                        "link": "a",
+                        "source": "span",
+                        "time": "span"
                     }
                 ]
                 
@@ -351,7 +358,7 @@ async def scrape_platform_thematic(theme: str, config: dict):
                 
                 try:
                     await page.goto(
-                        f"https://www.google.com/search?q={keyword}&tbm=nws&tbs=qdr:d2",
+                        f"https://www.google.com/search?q={keyword}&tbm=nws&tbs=qdr:w2",
                         timeout=SCRAPER_TIMEOUT
                     )
                 except Exception as e:
@@ -366,24 +373,47 @@ async def scrape_platform_thematic(theme: str, config: dict):
                     await random_sleep(1, 2)
                 
                 # Utiliser les mêmes stratégies de sélection que le scraper global
+                # Utiliser les mêmes stratégies de sélection que le scraper global
                 selector_strategies = [
                     {
                         "container": "div.Gx5Zad.xpd",
                         "title": "div.UFvD1, h3",
                         "link": "a",
-                        "source": "div.BamJPe, div.XR4uSe"
+                        "source": "div.BamJPe, div.XR4uSe",
+                        "time": "div.Ad0q5d"
                     },
                     {
                         "container": "div.SoaBEf, div.NiLAwe, article",
                         "title": "h3, div[role='heading']",
                         "link": "a",
-                        "source": ".NUnG9d, .MgUUmf, span"
+                        "source": ".NUnG9d, .MgUUmf, span",
+                        "time": "div.OSrXXb span, span.WG9Pyb"
                     },
                     {
                         "container": "div.g",
                         "title": "h3",
                         "link": "a",
-                        "source": "span"
+                        "source": "span",
+                        "time": "span.WG9Pyb"
+                    },
+                    {
+                        "container": "a.WlydOe",
+                        "title": "div.MBeuO",
+                        "source": "div.NUnG9d span",
+                        "time": "div.OSrXXb span"
+                    },
+                    {
+                       "container": "div.MjjYud", 
+                       "title": "h3", 
+                       "source": "div.NUnG9d span",
+                       "time": "div.OSrXXb span"
+                    },
+                    {
+                        "container": "div.g, div[role='article']",
+                        "title": "h3",
+                        "link": "a",
+                        "source": "span",
+                        "time": "span"
                     }
                 ]
                 
@@ -415,14 +445,23 @@ async def scrape_platform_thematic(theme: str, config: dict):
                         url = await link_elem.get_attribute("href")
                         source = await source_elem.inner_text() if source_elem else "Inconnu"
                         
+                        # Extraction date
+                        pub_date = None
+                        if strategy_used.get("time"):
+                            t_el = await article.query_selector(strategy_used["time"])
+                            if t_el:
+                                raw_date = await t_el.inner_text()
+                                pub_date = parse_relative_date(raw_date)
+
                         # Envoyer à l'API avec le thème pré-assigné
                         payload = {
-                            "platform": "Google News (Deep)",
+                            "platform": "Google News (Thematic)",  # Changé de Deep à Thematic
                             "author": source.strip(),
                             "content": title.strip(),
                             "media_type": "Article",
                             "url": url,
-                            "assigned_theme": theme  # Thème pré-assigné
+                            "assigned_theme": theme,  # Thème pré-assigné
+                            "publication_date": pub_date
                         }
                         
                         try:

@@ -39,6 +39,10 @@ class Database:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
+            # Optimisation pour la concurrence (Write-Ahead Logging)
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA busy_timeout=5000;')  # Attendre 5s avant timeout
+            
             # Table articles
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS articles (
@@ -120,6 +124,24 @@ class Database:
             cursor.execute('''
                 CREATE INDEX IF NOT EXISTS idx_theme ON articles(assigned_theme)
             ''')
+
+            # Index unique pour dédoublonnage strict
+            # D'abord, supprimer les doublons existants pour éviter l'erreur IntegrityError
+            try:
+                cursor.execute('''
+                    DELETE FROM articles 
+                    WHERE id NOT IN (
+                        SELECT MAX(id) 
+                        FROM articles 
+                        GROUP BY url
+                    )
+                ''')
+            except Exception as e:
+                logger.warning(f"Nettoyage préventif des doublons échoué (peut-être pas nécessaire): {e}")
+
+            cursor.execute('''
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_articles_url ON articles(url)
+            ''')
             
             logger.info(f"Base de données initialisée: {self.db_path}")
     
@@ -140,16 +162,8 @@ class Database:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
-            # 1. Vérifier si l'article existe déjà (Dédoublonnage par URL)
-            if url:
-                cursor.execute('SELECT id FROM articles WHERE url = ?', (url,))
-                existing = cursor.fetchone()
-                if existing:
-                    logger.debug(f"Article ignoré (doublon URL): {url}")
-                    return existing['id']
-
             cursor.execute('''
-                INSERT INTO articles (
+                INSERT OR IGNORE INTO articles (
                     date, platform, author, content, media_type, sentiment, url,
                     veilleur_initials, canal, source_media, sub_theme, content_summary,
                     audience, publication_date, recommended_action, priority, observation, assigned_theme
@@ -161,6 +175,15 @@ class Database:
                 audience, publication_date, recommended_action, priority, observation, assigned_theme
             ))
             
+            if cursor.rowcount == 0:
+                # Si 0 row affected, c'était un doublon
+                cursor.execute('SELECT id FROM articles WHERE url = ?', (url,))
+                existing = cursor.fetchone()
+                if existing:
+                     logger.debug(f"Article ignoré (doublon strict): {url}")
+                     return existing['id']
+                return 0 # Should not happen
+
             article_id = cursor.lastrowid
             logger.info(f"Article inséré: ID={article_id}, Platform={platform}, Thème={assigned_theme}")
             return article_id
@@ -196,29 +219,52 @@ class Database:
         
         Args:
             limit_per_platform: Nombre d'articles par plateforme
-            theme: Filtre optionnel par thème (pour les membres)
+            theme: Filtre optionnel par thème (pour les membres). Supporte plusieurs thèmes séparés par virgule.
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
             if theme:
-                # Avec filtre thématique
-                cursor.execute('''
-                    WITH RankedArticles AS (
+                # Support pour thèmes multiples (ex: "Politique,Économie")
+                themes = [t.strip() for t in theme.split(',') if t.strip()]
+                
+                if len(themes) == 1:
+                    # Un seul thème
+                    cursor.execute('''
+                        WITH RankedArticles AS (
+                            SELECT id, date, platform, author, content, media_type, sentiment, url, validation_status,
+                                   veilleur_initials, canal, source_media, sub_theme, content_summary, audience, 
+                                   publication_date, recommended_action, priority, observation, assigned_theme,
+                                   ROW_NUMBER() OVER (PARTITION BY platform ORDER BY date DESC) as rank
+                            FROM articles
+                            WHERE assigned_theme = ?
+                        )
                         SELECT id, date, platform, author, content, media_type, sentiment, url, validation_status,
                                veilleur_initials, canal, source_media, sub_theme, content_summary, audience, 
-                               publication_date, recommended_action, priority, observation, assigned_theme,
-                               ROW_NUMBER() OVER (PARTITION BY platform ORDER BY date DESC) as rank
-                        FROM articles
-                        WHERE assigned_theme = ?
-                    )
-                    SELECT id, date, platform, author, content, media_type, sentiment, url, validation_status,
-                           veilleur_initials, canal, source_media, sub_theme, content_summary, audience, 
-                           publication_date, recommended_action, priority, observation
-                    FROM RankedArticles
-                    WHERE rank <= ?
-                    ORDER BY platform, date DESC
-                ''', (theme, limit_per_platform))
+                               publication_date, recommended_action, priority, observation
+                        FROM RankedArticles
+                        WHERE rank <= ?
+                        ORDER BY platform, date DESC
+                    ''', (themes[0], limit_per_platform))
+                else:
+                    # Plusieurs thèmes - utiliser IN clause
+                    placeholders = ','.join('?' * len(themes))
+                    cursor.execute(f'''
+                        WITH RankedArticles AS (
+                            SELECT id, date, platform, author, content, media_type, sentiment, url, validation_status,
+                                   veilleur_initials, canal, source_media, sub_theme, content_summary, audience, 
+                                   publication_date, recommended_action, priority, observation, assigned_theme,
+                                   ROW_NUMBER() OVER (PARTITION BY platform ORDER BY date DESC) as rank
+                            FROM articles
+                            WHERE assigned_theme IN ({placeholders})
+                        )
+                        SELECT id, date, platform, author, content, media_type, sentiment, url, validation_status,
+                               veilleur_initials, canal, source_media, sub_theme, content_summary, audience, 
+                               publication_date, recommended_action, priority, observation
+                        FROM RankedArticles
+                        WHERE rank <= ?
+                        ORDER BY platform, date DESC
+                    ''', (*themes, limit_per_platform))
             else:
                 # Sans filtre (admin)
                 cursor.execute('''
@@ -298,14 +344,23 @@ class Database:
         Calcule les statistiques globales
         
         Args:
-            theme: Filtre optionnel par thème (pour les membres)
+            theme: Filtre optionnel par thème (pour les membres). Supporte plusieurs thèmes séparés par virgule.
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
-            # Clause WHERE conditionnelle
-            where_clause = 'WHERE assigned_theme = ?' if theme else ''
-            params = (theme,) if theme else ()
+            # Clause WHERE conditionnelle avec support multi-thèmes
+            where_clause = ''
+            params = ()
+            if theme:
+                themes = [t.strip() for t in theme.split(',') if t.strip()]
+                if len(themes) == 1:
+                    where_clause = 'WHERE assigned_theme = ?'
+                    params = (themes[0],)
+                else:
+                    placeholders = ','.join('?' * len(themes))
+                    where_clause = f'WHERE assigned_theme IN ({placeholders})'
+                    params = tuple(themes)
             
             # Total
             cursor.execute(f'SELECT COUNT(*) FROM articles {where_clause}', params)
@@ -364,13 +419,19 @@ class Database:
                 date_fmt = '%Y-%m-%d'
                 time_filter = f'-{limit} days'
 
-            # Clause WHERE avec filtre thématique si nécessaire
+            # Clause WHERE avec filtre thématique si nécessaire (support multi-thèmes)
             where_clause = 'WHERE date >= date(\'now\', ?)'
             params = [time_filter]
             
             if theme:
-                where_clause += ' AND assigned_theme = ?'
-                params.append(theme)
+                themes = [t.strip() for t in theme.split(',') if t.strip()]
+                if len(themes) == 1:
+                    where_clause += ' AND assigned_theme = ?'
+                    params.append(themes[0])
+                else:
+                    placeholders = ','.join('?' * len(themes))
+                    where_clause += f' AND assigned_theme IN ({placeholders})'
+                    params.extend(themes)
             
             # On utilise strftime pour le groupement
             query = f'''
