@@ -362,6 +362,8 @@ def process_data(post: SocialPost):
             tonality = "Neutre"
         else:
             tonality = "Positif"
+            
+        logger.info(f"🧠 Sentiment: {tonality} (Label: {label}, Score: {score}) | Modele: {'MOCK' if getattr(sentiment_model, '__name__', '') == 'mock_pipeline' else 'BERT'}")
         
         # B. Détection automatique du thème
         detected_theme = detect_theme(post.content, post.author)

@@ -516,9 +516,19 @@ if __name__ == "__main__":
             logger.info(f"🎯 MODE SCRAPING THÉMATIQUE: {args.theme}")
             logger.info(f"   Mots-clés: {len(config['keywords'])}")
             logger.info(f"   Priorité: {config['scraping_params']['priority']}")
+            logger.info(f"🔄 Scraping continu toutes les 60 secondes")
             
-            # Lancer le scraping avec les mots-clés du thème
-            asyncio.run(scrape_platform_thematic(args.theme, config))
+            # Boucle infinie pour scraping continu
+            while True:
+                try:
+                    # Lancer le scraping avec les mots-clés du thème
+                    asyncio.run(scrape_platform_thematic(args.theme, config))
+                    logger.info(f"✅ Cycle de scraping terminé pour '{args.theme}'. Attente de 60 secondes...")
+                    time.sleep(60)
+                except Exception as e:
+                    logger.error(f"❌ Erreur durant le scraping de '{args.theme}': {e}", exc_info=True)
+                    logger.info("⏳ Nouvelle tentative dans 30 secondes...")
+                    time.sleep(30)
             
         elif args.all_themes:
             # Mode scraping de tous les thèmes

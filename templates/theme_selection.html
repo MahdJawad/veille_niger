@@ -94,24 +94,13 @@
                 </div>
                 {% endfor %}
             </div>
-            <p style="font-size: 0.9em; margin-bottom: 20px; color: #888;">Sélectionnez jusqu'à 2 thématiques.</p>
+            <p style="font-size: 0.9em; margin-bottom: 20px; color: #888;">Sélectionnez une ou plusieurs thématiques.
+            </p>
             <button type="submit">Commencer la Veille</button>
         </form>
 
         <script>
-            const checkboxes = document.querySelectorAll('.theme-checkbox');
-            const maxAllowed = 2;
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function () {
-                    const checked = document.querySelectorAll('.theme-checkbox:checked');
-                    if (checked.length > maxAllowed) {
-                        this.checked = false;
-                        alert('Vous ne pouvez sélectionner que ' + maxAllowed + ' thématiques maximum.');
-                    }
-                });
-            });
-
+            // Validation: au moins une thématique doit être sélectionnée
             document.getElementById('themeForm').addEventListener('submit', function (e) {
                 const checked = document.querySelectorAll('.theme-checkbox:checked');
                 if (checked.length === 0) {
