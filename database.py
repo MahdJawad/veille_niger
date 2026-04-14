@@ -85,6 +85,48 @@ class Database:
                 )
             ''')
             
+            # Table user_sessions
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS user_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL,
+                    themes TEXT NOT NULL,
+                    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    end_time TIMESTAMP,
+                    articles_validated INTEGER DEFAULT 0
+                )
+            ''')
+            
+            # Table comments (Pour l'agent prédictif)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS comments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    post_id TEXT, -- Référence externe (ex: ID du tweet ou post FB)
+                    platform TEXT,
+                    author TEXT,
+                    content TEXT NOT NULL,
+                    sentiment TEXT,
+                    sentiment_score REAL,
+                    theme TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Table incidents (Pour les alertes générées par l'agent prédictif)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS incidents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    severity TEXT DEFAULT 'Medium', -- Low, Medium, High, Critical
+                    theme TEXT,
+                    related_platform TEXT,
+                    status TEXT DEFAULT 'Active', -- Active, Resolved, False Alarm
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
             # Migration: Ajout des colonnes pour les bases existantes
             new_columns = [
                 ("validation_status", "TEXT DEFAULT 'pending'"),
@@ -687,6 +729,79 @@ class Database:
                 SELECT * FROM articles
                 WHERE validation_status = 'member_validated'
                 ORDER BY updated_at DESC
+            ''')
+            return [dict(row) for row in cursor.fetchall()]
+
+    # --- GESTION DES SESSIONS (ADMIN TRACKING) ---
+    def start_session(self, username: str, themes: str):
+        """Démarre une nouvelle session de veille pour un membre"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            # Si le membre avait une session en cours non terminée, on la clôture
+            cursor.execute('''
+                UPDATE user_sessions
+                SET end_time = CURRENT_TIMESTAMP
+                WHERE username = ? AND end_time IS NULL
+            ''', (username,))
+            
+            cursor.execute('''
+                INSERT INTO user_sessions (username, themes)
+                VALUES (?, ?)
+            ''', (username, themes))
+            conn.commit()
+
+    def end_session(self, username: str):
+        """Termine la session active d'un membre"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE user_sessions
+                SET end_time = CURRENT_TIMESTAMP
+                WHERE username = ? AND end_time IS NULL
+            ''', (username,))
+            conn.commit()
+
+    def increment_session_validations(self, username: str):
+        """Incrémente le compteur d'articles traités pour la session active"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE user_sessions
+                SET articles_validated = articles_validated + 1
+                WHERE username = ? AND end_time IS NULL
+            ''', (username,))
+            conn.commit()
+
+    def get_all_sessions(self) -> List[Dict]:
+        """Récupère l'historique des sessions (pour l'admin)"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT id, username, themes, start_time, end_time, articles_validated
+                FROM user_sessions
+                ORDER BY start_time DESC
+                LIMIT 100
+            ''')
+            return [dict(row) for row in cursor.fetchall()]
+
+    # --- AGENT PREDICTIF (COMMENTAIRES) ---
+    def insert_comment(self, post_id: str, platform: str, author: str, content: str, sentiment: str, score: float, theme: str) -> int:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO comments (post_id, platform, author, content, sentiment, sentiment_score, theme)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (post_id, platform, author, content, sentiment, score, theme))
+            conn.commit()
+            return cursor.lastrowid
+            
+    def get_active_incidents(self) -> List[Dict]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM incidents 
+                WHERE status = 'Active' 
+                ORDER BY created_at DESC
             ''')
             return [dict(row) for row in cursor.fetchall()]
 

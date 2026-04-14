@@ -3,7 +3,9 @@ Scraper Google News avec deep scraping
 Version refactorisée avec logging structuré et configuration centralisée
 """
 import asyncio
+import time
 import random
+from datetime import datetime
 from playwright.async_api import async_playwright
 import requests
 import urllib.parse
@@ -36,30 +38,8 @@ async def random_sleep(min_s=3, max_s=7):
     await asyncio.sleep(random.uniform(min_s, max_s))
 
 def parse_relative_date(date_str: str) -> str:
-    """Convertit une date relative (Il y a X heures) en ISO format"""
-    if not date_str:
-        return None
-    
-    try:
-        now = datetime.now()
-        date_str = date_str.lower().strip()
-        
-        if "il y a" in date_str:
-            # Extraction du nombre
-            import re
-            match = re.search(r'(\d+)', date_str)
-            if match:
-                val = int(match.group(1))
-                if "minute" in date_str:
-                    return (now - datetime.timedelta(minutes=val)).isoformat()
-                elif "heure" in date_str:
-                    return (now - datetime.timedelta(hours=val)).isoformat()
-                elif "jour" in date_str:
-                    return (now - datetime.timedelta(days=val)).isoformat()
-        
-        return None
-    except Exception as e:
-        return None
+    """Retourne systématiquement la date de scraping (date courante) au format ISO"""
+    return datetime.now().isoformat()
 
 async def scrape_platform():
     async with async_playwright() as p:

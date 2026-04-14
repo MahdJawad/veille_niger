@@ -44,6 +44,112 @@
                 border: 1px solid #eee;
             }
         }
+        
+        /* Chatbot CSS */
+        .chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #009A44 0%, #007232 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0, 154, 68, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .chatbot-btn:hover {
+            transform: scale(1.1);
+        }
+        .chatbot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .chatbot-header {
+            background: linear-gradient(90deg, #E05206 0%, #E66A26 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-msg {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .msg-bot {
+            background: #e2e8f0;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        .msg-user {
+            background: #009A44;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .chatbot-input {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+        .chatbot-input input:focus {
+            border-color: #009A44;
+        }
+        .chatbot-input button {
+            background: #009A44;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .chatbot-input button:hover {
+            background: #007232;
+        }
     </style>
 </head>
 
@@ -102,6 +208,32 @@
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
             <strong class="font-bold">Erreur!</strong>
             <span class="block sm:inline">{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Alertes Incidents -->
+        {% if active_incidents and active_incidents|length > 0 %}
+        <div class="bg-red-50 border-l-4 border-red-600 p-6 rounded-r-2xl shadow-sm mb-8 animate-pulse">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-xl font-bold text-red-800 uppercase tracking-wide">Alerte Prédictive : Incidents en Cours</h3>
+                    <div class="mt-2 text-sm text-red-700 space-y-2">
+                        {% for inc in active_incidents %}
+                        <div class="bg-white/60 p-3 rounded-lg border border-red-100 flex justify-between items-center">
+                            <div>
+                                <strong class="font-bold block">{{ inc.title }}</strong>
+                                <span>{{ inc.description }}</span>
+                                <span class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded font-bold ml-2">{{ inc.severity }}</span>
+                            </div>
+                            <div class="text-xs text-red-500 font-semibold">{{ inc.created_at }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
         {% endif %}
 
@@ -248,6 +380,69 @@
 
         </div>
 
+        <!-- Suivi des Veilleurs (New Section) -->
+        <div class="mt-8 bg-white p-8 rounded-3xl shadow-sm lg:col-span-2">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold flex items-center gap-3 text-slate-800">
+                    <span class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-users-cog"></i>
+                    </span>
+                    Suivi des Veilleurs / Sessions de Travail
+                </h2>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="min-w-full divide-y divide-slate-200 text-sm text-left">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold">
+                        <tr>
+                            <th class="px-6 py-4">Membre</th>
+                            <th class="px-6 py-4">Thèmes Travaillés</th>
+                            <th class="px-6 py-4">Heure de Début</th>
+                            <th class="px-6 py-4">Heure de Fin</th>
+                            <th class="px-6 py-4">Articles Traités</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white">
+                        {% for session in user_sessions %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 font-semibold text-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">{{ session.username[:2]|upper }}</div>
+                                    {{ session.username }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-slate-600">
+                                {% for th in session.themes.split(',') %}
+                                <span class="inline-block bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-md mr-1 mb-1">{{ th }}</span>
+                                {% endfor %}
+                            </td>
+                            <td class="px-6 py-4 text-slate-500 whitespace-nowrap"><i class="far fa-clock mr-1"></i> {{ session.start_time }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if session.end_time %}
+                                <span class="text-slate-500"><i class="fas fa-check-circle text-emerald-500 mr-1"></i> {{ session.end_time }}</span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> En cours
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-bold text-lg {% if session.articles_validated > 0 %}text-indigo-600{% else %}text-slate-400{% endif %}">
+                                    {{ session.articles_validated }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-500">Aucune session enregistrée pour le moment.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Hidden Data for Charts -->
         <!-- Footer -->
         <footer class="mt-20 pt-10 border-t border-slate-200 text-center text-slate-400 text-sm">
             <div class="flex justify-center gap-4 mb-4">
@@ -422,7 +617,82 @@
                 plugins: { legend: { position: 'bottom' } }
             }
         });
+        
+        // --- CHATBOT LOGIC ---
+        function toggleChat() {
+            const win = document.getElementById('chatWindow');
+            win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+        }
+        
+        function addMessage(text, sender) {
+            const container = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg msg-${sender}`;
+            msgDiv.innerText = text;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // Add user message
+            addMessage(text, 'user');
+            input.value = '';
+            
+            // Add loading indicator
+            const loadingId = 'loading-' + Date.now();
+            const container = document.getElementById('chatMessages');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'chat-msg msg-bot';
+            loadingDiv.id = loadingId;
+            loadingDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Réflexion en cours...';
+            container.appendChild(loadingDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                
+                // Remove loading
+                document.getElementById(loadingId).remove();
+                
+                if (data.status === 'success') {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage("❌ Erreur: " + data.response, 'bot');
+                }
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                addMessage("❌ Erreur réseau. Impossible de contacter l'agent.", 'bot');
+            }
+        }
     </script>
+
+    <!-- Chatbot UI Components -->
+    <div class="chatbot-btn no-print" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+    </div>
+    
+    <div class="chatbot-window no-print" id="chatWindow">
+        <div class="chatbot-header">
+            <span>Agent IA Veille Niger</span>
+            <i class="fas fa-times cursor-pointer hover:text-slate-200" onclick="toggleChat()"></i>
+        </div>
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="chat-msg msg-bot">Bonjour ! Je suis l'assistant IA de Veille Niger. Je suis connecté à notre base de données locale. Posez-moi vos questions sur les menaces ou les statistiques !</div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Posez une question..." onkeypress="if(event.key === 'Enter') sendChat()">
+            <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
 </body>
 
 </html>

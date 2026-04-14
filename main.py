@@ -12,7 +12,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
+from chatbot import generate_chatbot_response
 import gspread
 from google.oauth2.service_account import Credentials
 from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
@@ -131,6 +132,9 @@ async def set_theme(request: Request, background_tasks: BackgroundTasks, theme: 
     if not user:
         return RedirectResponse(url="/login")
 
+    # Démarrer une nouvelle session de travail
+    db.start_session(username=user['username'], themes=",".join(theme))
+
     # Lancer le scraper spécifique pour chaque thème en background
     current_time = time.time()
     for t in theme:
@@ -150,6 +154,14 @@ async def set_theme(request: Request, background_tasks: BackgroundTasks, theme: 
 @app.get("/logout")
 async def logout():
     """Déconnecte l'utilisateur"""
+    return RedirectResponse(url="/end-session")
+
+@app.get("/end-session")
+async def end_session(request: Request, user: dict = Depends(get_current_user)):
+    """Termine la session de veille et déconnecte"""
+    if user:
+        db.end_session(user['username'])
+    
     response = RedirectResponse(url="/login")
     response.delete_cookie("session_user")
     response.delete_cookie("user_theme")
@@ -270,7 +282,18 @@ class ArticleUpdate(BaseModel):
     publication_date: Optional[str] = None
     recommended_action: Optional[str] = None
     priority: Optional[str] = None
+    priority: Optional[str] = None
     observation: Optional[str] = None
+
+class CommentItem(BaseModel):
+    post_id: str
+    platform: str
+    author: str
+    content: str
+    theme: str
+
+class ChatRequest(BaseModel):
+    message: str
 
 # --- LOGIQUE MÉTIER ---
 
@@ -430,6 +453,44 @@ async def ingest_post(post: SocialPost, background_tasks: BackgroundTasks):
     background_tasks.add_task(process_data, post)
     return {"status": "Processing", "author": post.author}
 
+@app.post("/api/comments")
+async def ingest_comment(comment: CommentItem):
+    """Reçoit un commentaire d'un scraper tiers d'un réseau social"""
+    # Analyse de sentiment basique
+    pipeline = get_sentiment_pipeline()
+    result = pipeline(comment.content[:500])[0] # Limite à 500 chars pour éviter erreurs
+    
+    sentiment = "Neutre"
+    label = result['label'].lower()
+    if 'positive' in label or '5 star' in label or '4 star' in label:
+        sentiment = "Positif"
+    elif 'negative' in label or '1 star' in label or '2 star' in label:
+        sentiment = "Négatif"
+        
+    db.insert_comment(
+        post_id=comment.post_id,
+        platform=comment.platform,
+        author=comment.author,
+        content=comment.content,
+        sentiment=sentiment,
+        score=result['score'],
+        theme=comment.theme
+    )
+    return {"success": True, "sentiment": sentiment}
+
+@app.post("/api/chat")
+async def chat_endpoint(request: ChatRequest, user: dict = Depends(get_current_user)):
+    """Endpoint pour le Chatbot IA"""
+    if not user:
+        raise HTTPException(status_code=401, detail="Non autorisé")
+        
+    try:
+        response = await generate_chatbot_response(request.message, db)
+        return {"response": response, "status": "success"}
+    except Exception as e:
+        logger.error(f"Erreur API Chat: {e}")
+        return {"response": "Désolé, une erreur technique m'empêche de répondre.", "status": "error"}
+
 @app.get("/api/article/{article_id}")
 async def get_article(article_id: int, user: dict = Depends(get_current_user)):
     """Récupère un article par son ID pour édition"""
@@ -462,6 +523,7 @@ async def update_article(request: Request, article_id: int, update: ArticleUpdat
     if not success:
         raise HTTPException(status_code=404, detail="Article non trouvé")
     
+    db.increment_session_validations(user['username'])
     return {"success": True, "message": "Article mis à jour"}
 
 @app.post("/api/article/{article_id}/validate")
@@ -491,6 +553,7 @@ async def validate_article(request: Request, article_id: int, status: str = Form
     if not success:
         raise HTTPException(status_code=404, detail="Article non trouvé")
         
+    db.increment_session_validations(user['username'])
     return {"success": True, "status": final_status}
 
 # --- USER MANAGEMENT START ---
@@ -762,7 +825,9 @@ async def executive_dashboard(request: Request, user: dict = Depends(get_current
             "themes": themes,
             "theme_sentiments": theme_sentiments,
             "weekly_trends": weekly_trends,
-            "top_sources": top_sources
+            "top_sources": top_sources,
+            "user_sessions": db.get_all_sessions(),
+            "active_incidents": db.get_active_incidents()
         }
         return templates.TemplateResponse("executive_dashboard.html", context)
     except Exception as e:
